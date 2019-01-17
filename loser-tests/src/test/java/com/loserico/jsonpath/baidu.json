@@ -1,0 +1,29 @@
+{
+	"status": 0,
+	"result": {
+		"location": {
+			"lng": 120.35309999999993,
+			"lat": 31.203099862950237
+		},
+		"formatted_address": "江苏省苏州市吴中区",
+		"business": "",
+		"addressComponent": {
+			"country": "中国",
+			"country_code": 0,
+			"province": "江苏省",
+			"city": "苏州市",
+			"district": "吴中区",
+			"town": "金庭镇",
+			"adcode": "320506",
+			"street": "",
+			"street_number": "",
+			"direction": "",
+			"distance": ""
+		},
+		"pois": [],
+		"roads": [],
+		"poiRegions": [],
+		"sematic_description": "",
+		"cityCode": 0
+	}
+}

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title></title>
+</head>
+<body>
+<script type="text/javascript">
+	var milis = 1384939800000;
+	var fromMilis = new Date(1384939800000);
+	console.log(fromMilis);
+	console.log(fromMilis.getTime());
+	
+
+	var date2 = new Date(-1384939800000);
+	console.log(date2);
+	console.log(date2.getTime());
+	
+	var over2038 = new Date(2205394200000);
+	console.log(over2038);
+	console.log(over2038.getTime());
+	
+	console.log(new Date(1519833600000));
+</script>
+
+</body>
+</html>

@@ -1,0 +1,4 @@
+1.依赖包说明
+For building MapReduce jobs, you only need to have the hadoop-client dependency, which contains all the Hadoop client-side classes needed to interact with HDFS and MapReduce.
+
+For running unit tests, we use junit, and for writing MapReduce tests, we use mrunit. The hadoop-minicluster library contains the "mini-" clusters that are useful for testing with Hadoop clusters running in a single JVM.

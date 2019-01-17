@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd" >
+<hibernate-mapping>
+
+	<!-- <sql-query name="findUser">
+		<![CDATA[
+			select * from user
+		]]>
+	</sql-query> -->
+	<sql-query name="User.findByName">
+		<![CDATA[
+			select * from user
+			where 1=1 
+			#if($name)
+				name=:name
+			#end
+		]]>
+	</sql-query>
+	
+	<sql-query name="User.findByAddress">
+		<![CDATA[
+		SELCT u.* FROM USER u 
+		join ADDRESS a on u.id=a.user_id
+		]]>
+	</sql-query>
+
+</hibernate-mapping>

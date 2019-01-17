@@ -1,0 +1,48 @@
+package com.loserico.orm.jpa.predicate;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+import com.loserico.orm.utils.StringUtils;
+
+public class StringPredicate extends AbstractPredicate {
+
+	private String propertyValue;
+	private CompareMode compareMode = CompareMode.EQ;
+
+	public StringPredicate(String propertyName, String propertyValue) {
+		setPropertyName(propertyName);
+		this.propertyValue = propertyValue;
+	}
+
+	public StringPredicate(String propertyName, String propertyValue, CompareMode compareMode) {
+		this(propertyName, propertyValue);
+		this.setCompareMode(compareMode);
+	}
+
+	public CompareMode getCompareMode() {
+		return compareMode;
+	}
+
+	public void setCompareMode(CompareMode compareMode) {
+		this.compareMode = compareMode;
+	}
+
+	public Predicate toPredicate(CriteriaBuilder criteriaBuilder, Root root) {
+		Predicate predicate = null;
+		Path<String> path = root.get(getPropertyName());
+		switch (compareMode) {
+		case EQ:
+			predicate = criteriaBuilder.equal(path, propertyValue);
+			break;
+		case NOTEQ:
+			predicate = criteriaBuilder.notEqual(path, propertyValue);
+			break;
+		case ANYWHERE:
+			predicate = criteriaBuilder.like(path, String.join("%", propertyValue, "%"));
+		}
+		return predicate;
+	}
+}

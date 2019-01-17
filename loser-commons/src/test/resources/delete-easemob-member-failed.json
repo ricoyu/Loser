@@ -1,0 +1,7 @@
+{
+    "error": "forbidden_op",
+    "timestamp": 1500548363616,
+    "duration": 0,
+    "exception": "com.easemob.group.exception.ForbiddenOpException",
+    "error_description": "users [15062370229zkhexy] are not members of this group!"
+}

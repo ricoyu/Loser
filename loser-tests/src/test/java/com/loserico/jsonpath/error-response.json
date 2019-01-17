@@ -1,0 +1,7 @@
+{
+	"error": "resource_not_found",
+	"timestamp": 1502542215171,
+	"duration": 0,
+	"exception": "com.easemob.group.exception.ResourceNotFoundException",
+	"error_description": "username 15052572349jepjtq doesn't exist!"
+}

@@ -1,0 +1,12 @@
+{
+	"geoType1": {
+		"properties": {
+			"gridId": {
+				"type": "string"
+			},
+			"location": {
+				"type": "geo_point"
+			}
+		}
+	}
+}

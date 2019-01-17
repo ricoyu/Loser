@@ -1,0 +1,95 @@
+
+	@CacheResult(cacheName="simpleCaches")
+	public String simpleCache(String msg) {//msg传的是你好
+		String result = "Hello simple cache: " + msg;
+		System.out.println(result);
+		return result;
+	}
+	
+	simpleCaches对应Redisson的一个RMap
+	
+	msg的值是RMap的一个key,Redisson根据这个key从simpleCaches这个RMap中取缓存的对象
+	org.redisson.spring.cache.RedissonCache.get(key) {
+		map.get(key);
+	}
+	
+	当缓存没有命中，调用
+	org.redisson.spring.cache.RedissonCache.put(Object, Object)
+    @Override
+    public void put(Object key, Object value) {
+        if (mapCache != null) {
+            mapCache.fastPut(key, value, config.getTTL(), TimeUnit.MILLISECONDS, config.getMaxIdleTime(), TimeUnit.MILLISECONDS);
+        } else {
+            map.fastPut(key, value);
+        }
+    }
+	将返回值放入缓存，可以看到过期时间单位是毫秒
+	
+	org.redisson.command.CommandAsyncService.evalWriteAsync(String, Codec, RedisCommand<T>, String, List<Object>, Object...)
+	@Override
+    public <T, R> RFuture<R> evalWriteAsync(key, codec, RedisCommand<T> evalCommandType, script, keys, params) {
+        NodeSource source = getNodeSource(key);
+        return evalAsync(source, false, codec, evalCommandType, script, keys, params);
+    }
+    codec是org.redisson.codec.JsonJacksonCodec
+    script是一段lua脚本
+		if tonumber(ARGV[1]) > 0 then 
+			redis.call('zadd', KEYS[2], ARGV[1], ARGV[4]); 
+		else redis.call('zrem', KEYS[2], ARGV[4]); 
+		end; 
+		
+		if tonumber(ARGV[2]) > 0 then 
+			redis.call('zadd', KEYS[3], ARGV[2], ARGV[4]); 
+		else 
+			redis.call('zrem', KEYS[3], ARGV[4]); 
+		end; 
+		
+		local value = struct.pack('dLc0', ARGV[3], string.len(ARGV[5]), ARGV[5]); 
+		return redis.call('hset', KEYS[1], ARGV[4], value); 
+		
+	keys为
+		[simpleCaches, redisson__timeout__set__{simpleCaches}, redisson__idle__set__{simpleCaches}]
+	params为
+		[1484906930031, 1484906246103, 720000, 你好, Hello simple cache: 你好]
+	
+	org.redisson.command.CommandAsyncService.getNodeSource(key) //key是simpleCaches
+	private NodeSource getNodeSource(String key) {
+        int slot = connectionManager.calcSlot(key);
+        MasterSlaveEntry entry = connectionManager.getEntry(slot); //计算得到的slot是13968
+        return new NodeSource(entry);
+    }
+
+缓存设置
+@CacheResult(cacheName="redisCache")
+传入参数：cache-key1
+
+查看redis中相关key  
+127.0.0.1:6379> keys *
+1) "redisson__idle__set__{redisCache}"
+2) "redisson__timeout__set__{redisCache}"
+3) "redisCache"
+
+可见Redisson设置了三个key，
+redisCache是一个hash类型，缓存的对象就作为该hash的一个field
+redisson__idle__set__{redisCache}是一个zset，对应配置的maxIdleTime
+redisson__timeout__set__{redisCache}是一个zset，对应配置的ttl
+
+127.0.0.1:6379> zrange redisson__idle__set__{redisCache} 0 -1 withscores
+1) "\"cache-key1\""
+2) "1484960640220"
+127.0.0.1:6379> zrange redisson__timeout__set__{redisCache} 0 -1 withscores
+1) "\"cache-key1\""
+2) "1484960614220"
+127.0.0.1:6379> type redisCache
+hash
+127.0.0.1:6379> type redisson__idle__set__{redisCache}
+zset
+127.0.0.1:6379> type redisson__timeout__set__{redisCache}
+zset
+127.0.0.1:6379> ttl redisCache
+(integer) -1
+127.0.0.1:6379> ttl redisson__idle__set__{redisCache}
+(integer) -1
+127.0.0.1:6379> ttl redisson__timeout__set__{redisCache}
+(integer) -1
+    

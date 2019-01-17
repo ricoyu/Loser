@@ -1,0 +1,13 @@
+{
+    "action": "post",
+    "application": "a0354c70-410c-11e7-9fee-bb63055cb932",
+    "uri": "http://a1.easemob.com/1177170522115949/pims/chatgroups",
+    "entities": [],
+    "data": {
+        "groupid": "19341458341890"
+    },
+    "timestamp": 1497843852638,
+    "duration": 0,
+    "organization": "1177170522115949",
+    "applicationName": "pims"
+}

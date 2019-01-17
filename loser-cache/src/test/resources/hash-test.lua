@@ -1,0 +1,6 @@
+--return redis.call("ZSORE", "test-set", "a")
+-- redis.call("hset", "test-set", "a", 1)
+redis.call("zadd", "test-set", 123, "ASD")
+-- redis.call("DEL", "test-set")
+-- return redis.call("type", "test-set")
+return redis.call("ZSCORE", "test-set", "ASD")

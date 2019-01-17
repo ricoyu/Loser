@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:noNamespaceSchemaLocation="http://ehcache.org/ehcache.xsd"
+	updateCheck="true" monitoring="autodetect" 
+	dynamicConfig="true" name="cacheManager">
+
+	<diskStore path="java.io.tmpdir" />
+
+	<defaultCache 
+		maxEntriesLocalHeap="0" 
+		eternal="false" 
+		timeToIdleSeconds="1200" 
+		timeToLiveSeconds="1200"
+		maxElementsInMemory="50"
+		overflowToDisk="true">
+	</defaultCache>
+	
+	<!-- 登录记录缓存 锁定10分钟 -->
+	<cache name="passwordRetryCache"
+           maxEntriesLocalHeap="2000"
+           eternal="false"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true"/>
+    
+	<cache name="authorizationCache"
+		   maxEntriesLocalHeap="2000"
+           eternal="false"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true"/>
+
+    <cache name="authenticationCache"
+           maxEntriesLocalHeap="2000"
+           eternal="false"
+           timeToIdleSeconds="3600"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+           statistics="true"/>
+
+    <cache name="shiro-activeSessionCache"
+           maxEntriesLocalHeap="2000"
+           eternal="false"
+           timeToIdleSeconds="0"
+           timeToLiveSeconds="0"
+           overflowToDisk="false"
+		   diskPersistent="false"  
+           statistics="true"/>
+    	
+	<!-- 设置默认的查询缓存区域的属性 -->
+	<cache name="org.hibernate.cache.StandardQueryCache" 
+		maxElementsInMemory="50"
+		eternal="false" 
+		timeToIdleSeconds="3600" 
+		timeToLiveSeconds="7200" 
+		overflowToDisk="true"/>
+		
+    <!-- 设置时间戳缓存区域的属性 -->
+    <cache name="org.hibernate.cache.UpdateTimestampsCache" 
+		maxElementsInMemory="5000"
+		eternal="true" 
+		overflowToDisk="true"/> 
+	
+	<cache name="packedItems"
+		maxEntriesLocalHeap="500"
+		timeToLiveSeconds="3600"
+		overflowToDisk="true"
+		statistics="true"/>
+</ehcache>

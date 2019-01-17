@@ -1,0 +1,8 @@
+local data = redis.call('GET', KEYS[1])
+if data == ARVG[1] then
+	redis.call('SET', KEYS[1], ARVG[2])
+	return "The value that got sent is ="..ARVG[2]
+else
+	redis.call('SET', KEYS[1], ARVG[3])
+	return "The value that got sent is = "..ARVG[3]
+end

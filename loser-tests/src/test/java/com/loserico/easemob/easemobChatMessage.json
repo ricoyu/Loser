@@ -1,0 +1,14 @@
+{
+    "action": "get",
+    "application": "55e52460-7339-11e7-94b1-09927c6f3151",
+    "uri": "http://a1.easemob.com/1117170727115727/pims/chatmessages/2018031312",
+    "data": [
+        {
+            "url": "http://ebs-chatmessage-a1.easemob.com/history/3D/1117170727115727/pims/2018031312.gz?Expires=1521018464&OSSAccessKeyId=LTAIlKPZStPokdA8&Signature=kZ8jVb0B78TO2dohoWiCHyiYIgo%3D"
+        }
+    ],
+    "timestamp": 1521016664485,
+    "duration": 0,
+    "organization": "1117170727115727",
+    "applicationName": "pims"
+}

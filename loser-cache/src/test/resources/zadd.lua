@@ -1,0 +1,1 @@
+redis.call("ZADD", KEY[1], ARGV[1])

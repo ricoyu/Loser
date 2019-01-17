@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<ufinterface billtype="customer" filename="customer5a09b001.xml" isexchange="Y" replace="Y" roottag="sendresult" sender="001" successful="Y">
+    <sendresult>
+        <billpk>
+        </billpk>
+        <bdocid>0001V9100000000004AF15abc55a09b0customer0</bdocid>
+        <filename>customer5a09b001.xml</filename>
+        <resultcode>1</resultcode>
+        <resultdescription>Doc  0001V9100000000004AF15abc55a09b0customer0  Starting to process...
+Doc  0001V9100000000004AF15abc55a09b0customer0  Processing finished.</resultdescription>
+        <content>1001V2100000000018KV</content>
+    </sendresult>
+</ufinterface>

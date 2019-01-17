@@ -1,0 +1,19 @@
+log4j.rootCategory=debug,stdout,fileout
+
+log4j.appender.stdout=org.apache.log4j.ConsoleAppender
+log4j.appender.stdout.Target=System.out
+log4j.appender.stdout.layout=org.apache.log4j.PatternLayout
+log4j.appender.stdout.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %p %C L%L-%m%n
+
+log4j.appender.fileout=org.apache.log4j.DailyRollingFileAppender
+log4j.appender.fileout.File=${java.io.tmpdir}/loser-admin.log
+log4j.appender.fileout.layout=org.apache.log4j.PatternLayout
+log4j.appender.fileout.layout.ConversionPattern=%d{yyyy-MM-dd HH:mm:ss} %p %C L%L-%m%n
+
+log4j.logger.org.hibernate=debug
+log4j.logger.org.hibernate.engine=debug
+log4j.logger.org.hibernate.SQL=debug
+log4j.logger.org.hibernate.type.descriptor.sql=trace
+log4j.logger.org.hibernate.stat=debug
+
+log4j.logger.org.springframework=info

@@ -1,0 +1,10 @@
+{
+    "redisCache": {
+        "ttl": 20000,
+        "maxIdleTime": 20000
+    },
+    "spring:cache:user": {
+        "ttl": 180000,
+        "maxIdleTime": 180000
+    }
+}

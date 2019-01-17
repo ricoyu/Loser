@@ -1,0 +1,16 @@
+{
+  "action" : "delete",
+  "application" : "a0354c70-410c-11e7-9fee-bb63055cb932",
+  "uri" : "http://a1.easemob.com/1177170522115949/pims/chatgroups/22175291604993/users/15062370229ZkHExy",
+  "entities" : [ ],
+  "data" : {
+    "result" : true,
+    "action" : "remove_member",
+    "user" : "15062370229zkhexy",
+    "groupid" : "22175291604993"
+  },
+  "timestamp" : 1500548331541,
+  "duration" : 1,
+  "organization" : "1177170522115949",
+  "applicationName" : "pims"
+}
