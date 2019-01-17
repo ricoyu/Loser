@@ -1,4 +1,5 @@
 package com.loserico.commons.enums;
+
 /**
  * 定义常见的数组类型class名字
  * <p>
