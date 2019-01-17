@@ -62,6 +62,16 @@ public final class JacksonUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(JacksonUtils.class);
 
+	/*
+	 * 这里可以自定义Jackson的一些行为, 默认读取的是classpath根目录下的jackson.properties文件
+	 * 
+	 * #序列化/反序列化优先采用毫秒数方式还是日期字符串形式, false表示采用日期字符串
+	 * jackson.epoch.date=false
+	 * 
+	 * 可以识别的enum类型的属性
+	 * jackson.enum.propertes=code, desc, alias
+	 * @on
+	 */
 	private static final PropertyReader propertyReader = new PropertyReader("jackson");
 	private static Set<String> enumProperties = propertyReader.getStringAsSet("jackson.enum.propertes");
 	private static boolean epochBased = propertyReader.getBoolean("jackson.epoch.date", false);
@@ -69,8 +79,7 @@ public final class JacksonUtils {
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	static {
 		JavaTimeModule javaTimeModule = new JavaTimeModule();
-		if (epochBased) {
-			// formatter that accepts an epoch millis value
+		if (epochBased) { //这是基于epoch miliseconds的
 			DateTimeFormatter epochMilisFormater = new DateTimeFormatterBuilder()
 					.appendValue(ChronoField.INSTANT_SECONDS, 1, 19, SignStyle.NEVER) // epoch seconds
 					.appendValue(ChronoField.MILLI_OF_SECOND, 3)// milliseconds
@@ -85,11 +94,9 @@ public final class JacksonUtils {
 
 			module.addSerializer(LocalTime.class, new LocalTimeSerializer(ofPattern("HH:mm:ss")));
 			objectMapper.registerModule(module);
-		} else {
-			javaTimeModule.addSerializer(LocalDateTime.class,
-					new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer(ofPattern("yyyy-MM-dd HH:mm:ss")));
-			javaTimeModule.addDeserializer(LocalDateTime.class,
-					new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(ofPattern("yyyy-MM-dd HH:mm:ss")));
+		} else { //在这是基于日期字符串的形式
+			javaTimeModule.addSerializer(LocalDateTime.class, new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer(ofPattern("yyyy-MM-dd HH:mm:ss")));
+			javaTimeModule.addDeserializer(LocalDateTime.class, new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(ofPattern("yyyy-MM-dd HH:mm:ss")));
 
 			javaTimeModule.addSerializer(LocalDate.class, new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer(ofPattern("yyyy-MM-dd")));
 			javaTimeModule.addDeserializer(LocalDate.class, new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer(ofPattern("yyyy-MM-dd")));
@@ -261,7 +268,7 @@ public final class JacksonUtils {
 			throw new JSONException(e);
 		}
 	}
-	
+
 	public static ObjectMapper objectMapper() {
 		return objectMapper;
 	}
