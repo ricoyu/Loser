@@ -147,12 +147,13 @@ public class JpaDao implements JPQLOperations, SQLOperations, CriteriaOperations
 		ARRAY_TYPE_MAP.put(ArrayTypes.FLOAT_WRAPPER.getClassName(), ArrayTypes.FLOAT_WRAPPER);
 
 		Properties properties = new Properties();
-		properties.setProperty("userdirective", "com.loserico.commons.velocity.tools.IfNotNull,"
-				+ "com.loserico.commons.velocity.tools.IfNull,"
-				+ "com.loserico.commons.velocity.tools.Count,"
-				+ "com.loserico.commons.velocity.tools.Between,"
-				+ "com.loserico.commons.velocity.tools.OmitForCount,"
-				+ "com.loserico.commons.velocity.tools.IfPresent");
+		properties.setProperty("userdirective", 
+				"com.loserico.commons.velocity.tools.IfNotNull," + 
+				"com.loserico.commons.velocity.tools.IfNull," + 
+				"com.loserico.commons.velocity.tools.Count," + 
+				"com.loserico.commons.velocity.tools.Between," + 
+				"com.loserico.commons.velocity.tools.OmitForCount," + 
+				"com.loserico.commons.velocity.tools.IfPresent");
 		properties.setProperty(RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
 				"org.apache.velocity.runtime.log.Log4JLogChute");
 		properties.setProperty("runtime.log.logsystem.log4j.logger", "velocity");
