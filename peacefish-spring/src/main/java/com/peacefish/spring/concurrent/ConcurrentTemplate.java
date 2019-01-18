@@ -34,22 +34,6 @@ public final class ConcurrentTemplate {
 	private static final ThreadLocal<Signal> signalLocal = new ThreadLocal<>();
 
 	/**
-	 * 使用默认的CachedThreadPool异步执行并返回结果, 
-	 * 这是单个任务的一部执行, 不需要配合ConcurrentTemplate.await()使用
-	 * 使用默认的CachedThreadPool异步执行并返回结果, 这是单个任务的一部执行, 不需要配合ConcurrentTemplate.await()使用
-	 * 
-	 * @param executorService
-	 * @param supplier
-	 * @param countDownLatch
-	 * @return FutureResult<T>
-	 * @on
-	 */
-	public static <T> FutureResult<T> submit(Supplier<T> supplier) {
-		Future<T> future = EXECUTOR_SERVICE.submit(() -> supplier.get());
-		return futureResult(future);
-	}
-
-	/**
 	 * 将任务提交给futureResult(supplier)异步执行, 可以提交多次任务, 
 	 * 然后主线程调用ConcurrentTemplate.await()等待提交的所有任务执行完毕
 	 * 
@@ -81,6 +65,81 @@ public final class ConcurrentTemplate {
 			}
 		});
 		return new FutureResult<>(future);
+	}
+
+	/**
+	 * 从ThreadLocal中拿Signal对象, 这个要在主线程里面调用
+	 * 提取出来是因为Signal对象在lamd里面用到了, 需要是事实上的final
+	 * @on
+	 */
+	private static Signal signal() {
+		Signal signal = signalLocal.get();
+		if (signal == null) {
+			signal = new Signal();
+			signal.takeSeat();
+			signalLocal.set(signal);
+		} else {
+			signal.takeSeat();
+		}
+		return signal;
+	}
+
+	/**
+	 * 在调用{@code futureResult(Supplier<T> supplier)}后, 业务代码需要调用 {@code await()}等待异步任务执行完毕
+	 * 没有超时时间, 发生异常记录log
+	 * 
+	 * @param countDownLatch
+	 * @on
+	 */
+	public static void await() {
+		/*
+		 * 这个方法只会从signalLocal中取出Signal, 不负责创建
+		 */
+		Signal signal = signalLocal.get();
+		if (signal == null) {
+			throw new ConcurrentOperationException("先执行任务再调用我");
+		}
+
+		/*
+		 * 业务方法调用ConcurrentTemplate.await()时, 所有任务都已经提交给futureResult(supplier)了
+		 * 也就记录好了有几个位置
+		 * @on
+		 */
+		String threadName = Thread.currentThread().getName();
+		logger.info("线程[" + threadName + "]: 有{}个座位, 都坐好了, 老司机要开车了!", signal.seats());
+		CountDownLatch countDownLatch = new CountDownLatch(signal.seats());
+		try {
+			logger.info("线程[{}]上锁并准备调用countDownLatchReady.signalAll()", threadName);
+			synchronized (signal) {
+				signal.countDownLatch = countDownLatch;
+				logger.info("线程[" + threadName + "]: 大家可以继续了");
+				signal.notifyAll();
+				logger.info("线程[{}]成功通知到在 countDownLatchReady 上 await()的线程", threadName);
+			}
+			countDownLatch.await();
+		} catch (Throwable e) {
+			logger.error("线程[{}] 调用countDownLatchReady.signalAll() 报错", threadName);
+			logger.error("", e);
+		} finally {
+			logger.error("线程[{}] 从signalLocal中删除Signal对象, 清理ThreadLocal", threadName);
+			signalLocal.remove();
+		}
+	}
+
+	/**
+	 * 使用默认的CachedThreadPool异步执行并返回结果, 
+	 * 这是单个任务的一部执行, 不需要配合ConcurrentTemplate.await()使用
+	 * 使用默认的CachedThreadPool异步执行并返回结果, 这是单个任务的一部执行, 不需要配合ConcurrentTemplate.await()使用
+	 * 
+	 * @param executorService
+	 * @param supplier
+	 * @param countDownLatch
+	 * @return FutureResult<T>
+	 * @on
+	 */
+	public static <T> FutureResult<T> submit(Supplier<T> supplier) {
+		Future<T> future = EXECUTOR_SERVICE.submit(() -> supplier.get());
+		return futureResult(future);
 	}
 
 	/**
@@ -119,93 +178,6 @@ public final class ConcurrentTemplate {
 			}
 		});
 		return new FutureResult<>(future);
-	}
-
-	/**
-	 * 等待, 没有超时时间, 发生异常记录log 
-	 * await()方法在等 futureResult(supplier)异步任务执行完毕
-	 * 
-	 * @param countDownLatch
-	 * @on
-	 */
-	public static void await() {
-		/*
-		 * 这个方法只会从signalLocal中取出Signal, 不负责创建
-		 */
-		Signal signal = signalLocal.get();
-		if (signal == null) {
-			throw new ConcurrentOperationException("先执行任务再调用我");
-		}
-
-		/*
-		 * 业务方法调用ConcurrentTemplate.await()时, 所有任务都已经提交给futureResult(supplier)了
-		 * 也就记录好了有几个位置
-		 * @on
-		 */
-		String threadName = Thread.currentThread().getName();
-		logger.info("线程[" + threadName + "]: 有{}个座位, 都坐好了, 老司机要开车了!", signal.seats());
-		CountDownLatch countDownLatch = new CountDownLatch(signal.seats());
-		try {
-			logger.info("线程[{}]上锁并准备调用countDownLatchReady.signalAll()", threadName);
-			synchronized (signal) {
-				signal.countDownLatch = countDownLatch;
-				logger.info("线程[" + threadName + "]: 大家可以继续了");
-				signal.notifyAll();
-				logger.info("线程[{}]成功通知到在 countDownLatchReady 上 await()的线程", threadName);
-			}
-			countDownLatch.await();
-		} catch (Throwable e) {
-			logger.error("线程[{}] 调用countDownLatchReady.signalAll() 报错", threadName);
-			logger.error("", e);
-		} finally {
-			logger.error("线程[{}] 从signalLocal中删除Signal对象, 清理ThreadLocal", threadName);
-			signalLocal.remove();
-		}
-		await(() -> logger.error("ConcurrentTemplate.await() 抛了异常"));
-	}
-
-	/**
-	 * 等待，没有超时时间，发生异常记录log
-	 * 
-	 * await()方法在等 futureResult(supplier)异步任务执行完毕
-	 * 
-	 * @param countDownLatch
-	 * @on
-	 */
-	public static void await(Runnable runnable) {
-		/*
-		 * 这个方法只会从signalLocal中取出Signal, 不负责创建
-		 */
-		Signal signal = signalLocal.get();
-		if (signal == null) {
-			throw new ConcurrentOperationException("先执行任务再调用我");
-		}
-
-		/*
-		 * 业务方法调用ConcurrentTemplate.await()时, 所有任务都已经提交给futureResult(supplier)了
-		 * 也就记录好了有几个位置
-		 * @on
-		 */
-		String threadName = Thread.currentThread().getName();
-		logger.debug("线程[" + threadName + "]: 有{}个座位, 都坐好了, 老司机要开车了!", signal.seats());
-		CountDownLatch countDownLatch = new CountDownLatch(signal.seats());
-		signal.countDownLatch = countDownLatch;
-		logger.debug("线程[" + threadName + "]: 大家可以继续了");
-		try {
-			logger.debug("线程[{}]上锁并准备调用countDownLatchReady.signalAll()", threadName);
-			synchronized (signal) {
-				signal.notifyAll();
-				logger.debug("线程[{}]成功通知到在 countDownLatchReady 上 await()的线程", threadName);
-			}
-			countDownLatch.await();
-		} catch (Throwable e) {
-			logger.error("线程[{}] 调用countDownLatchReady.signalAll() 报错", threadName);
-			logger.error("", e);
-		} finally {
-			logger.error("线程[{}] 从signalLocal中删除Signal对象, 清理ThreadLocal", threadName);
-			signalLocal.remove();
-			runnable.run();
-		}
 	}
 
 	/**
@@ -380,7 +352,7 @@ public final class ConcurrentTemplate {
 		private int seat = 0;
 		private CountDownLatch countDownLatch;
 
-		public synchronized void seatPlus() {
+		public synchronized void takeSeat() {
 			seat++;
 		}
 
@@ -402,20 +374,5 @@ public final class ConcurrentTemplate {
 				logger.error("", e);
 			}
 		}
-	}
-
-	/**
-	 * 从ThreadLocal中拿Signal对象, 这个要在主线程里面调用
-	 */
-	private static Signal signal() {
-		Signal signal = signalLocal.get();
-		if (signal == null) {
-			signal = new Signal();
-			signal.seatPlus();
-			signalLocal.set(signal);
-		} else {
-			signal.seatPlus();
-		}
-		return signal;
 	}
 }
