@@ -26,6 +26,14 @@ public class LocalDatePredicate extends AbstractDatePredicate {
 		addCandidateMatchMode(EXACT, BETWEEN, LATER_THAN, LATER_THAN_OR_SAME, EARLIER_THAN, EARLIER_THAN_OR_SAME);
 		checkDateMatchMode(matchMode);
 	}
+	
+	public LocalDatePredicate(String propertyName, LocalDate localDate, DateMatchMode matchMode) {
+		setPropertyName(propertyName);
+		this.begin = localDate;
+		this.matchMode = matchMode;
+		addCandidateMatchMode(EXACT, BETWEEN, LATER_THAN, LATER_THAN_OR_SAME, EARLIER_THAN, EARLIER_THAN_OR_SAME);
+		checkDateMatchMode(matchMode);
+	}
 
 	public LocalDatePredicate(String propertyName, LocalDate begin, LocalDate end) {
 		setPropertyName(propertyName);

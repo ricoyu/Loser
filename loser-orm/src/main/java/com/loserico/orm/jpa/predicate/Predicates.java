@@ -39,6 +39,10 @@ public class Predicates {
 	public static Predicate localDatePredicate(String propertyName, LocalDate propertyValue) {
 		return new LocalDatePredicate(propertyName, propertyValue);
 	}
+	
+	public static Predicate localDatePredicate(String propertyName, LocalDate propertyValue, DateMatchMode dateMatchMode) {
+		return new LocalDatePredicate(propertyName, propertyValue, dateMatchMode);
+	}
 
 	public static Predicate inPredicate(String propertyName, Object propertyValue) {
 		return new InPredicate(propertyName, propertyValue);
