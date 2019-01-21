@@ -246,12 +246,16 @@ public class ExcelUtils {
 		Cell cell = row.getCell(cellIndex);
 		if (cell != null) {
 			try {
-				if (cell.getCellTypeEnum() == CellType.STRING) {
+				CellType cellTypeEnum = cell.getCellTypeEnum();
+				if (cellTypeEnum == CellType.STRING) {
 					String dateStr = stringVal(row, cellIndex);
 					if (isBlank(dateStr)) {
 						return null;
 					}
 					return DateUtils.toLocalDate(StringUtils.trimQuote(dateStr));
+				} else if (cellTypeEnum == CellType.NUMERIC) {
+					String dateStr = String.valueOf((long) cell.getNumericCellValue());
+					return DateUtils.toLocalDate(dateStr);
 				}
 				return DateUtils.toLocalDate(cell.getDateCellValue());
 			} catch (Exception e) {
