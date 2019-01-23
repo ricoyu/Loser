@@ -2,15 +2,12 @@ package com.loserico.concurrent;
 
 import static org.junit.Assert.assertEquals;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.function.BiConsumer;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import com.jayway.jsonpath.internal.function.text.Length;
 
 /**
  * https://dzone.com/articles/concurrenthashmap-in-java8
