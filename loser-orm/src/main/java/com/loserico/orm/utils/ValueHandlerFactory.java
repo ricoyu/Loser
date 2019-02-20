@@ -84,6 +84,8 @@ public class ValueHandlerFactory {
 				return ((Integer) value).longValue();
 			} else if (String.class.isInstance(value)) {
 				return Long.parseLong((String) value);
+			} else if (Short.class.isInstance(value)) {
+				return ((Short)value).longValue();
 			}
 			throw unknownConversion(value, Long.class);
 		}

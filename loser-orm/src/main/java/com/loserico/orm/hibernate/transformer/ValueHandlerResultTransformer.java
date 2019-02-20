@@ -550,7 +550,7 @@ public class ValueHandlerResultTransformer extends AliasedTupleSubsetResultTrans
 				 * 需要做类型转换的情况
 				 */
 				if (needCast) {
-					logger.debug("needCasts[{}]为true，因此列[{}]需要做类型转换, 值为[{}],先确定采用哪个ValueHandler", i, aliases[i], value);
+					logger.debug("needCasts[{}]为true, 因此列[{}]需要做类型转换, 值为[{}],先确定采用哪个ValueHandler", i, aliases[i], value);
 					ValueHandler valueHandler = ValueHandlerFactory.determineAppropriateHandler(parameterType);
 					//可以通过valueHandler处理
 					if (valueHandler != null) {

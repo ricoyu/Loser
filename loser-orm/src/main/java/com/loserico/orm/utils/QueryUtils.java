@@ -29,7 +29,7 @@ public final class QueryUtils {
 
 	/**
 	 * 用于SQL查询中的 like子句的条件 <p> 
-	 * 前缀匹配，即返回xx%这样的格式，prefix两边的空格被去掉，如果prefix是null或者空字符串则返回null
+	 * 前缀匹配, 即返回xx%这样的格式, prefix两边的空格被去掉, 如果prefix是null或者空字符串则返回null
 	 * 
 	 * @param prefix
 	 * @return String
@@ -44,7 +44,7 @@ public final class QueryUtils {
 	
 	/**
 	 * 用于SQL查询中的 like子句的条件 <p> 
-	 * 前缀匹配，即返回xx%这样的格式，prefix两边的空格被去掉，如果prefix是null或者空字符串则返回null
+	 * 前缀匹配, 即返回xx%这样的格式, prefix两边的空格被去掉, 如果prefix是null或者空字符串则返回null
 	 * 
 	 * @param paramValue
 	 * @return String
@@ -58,7 +58,7 @@ public final class QueryUtils {
 
 	/**
 	 * 用于SQL查询中的 like子句的条件 <p> 
-	 * 前缀匹配，即返回%xx这样的格式，prefix两边的空格被去掉，如果prefix是null或者空字符串则返回null
+	 * 后缀匹配, 即返回%xx这样的格式, prefix两边的空格被去掉, 如果prefix是null或者空字符串则返回null
 	 * 
 	 * @param prefix
 	 * @return String
@@ -73,7 +73,7 @@ public final class QueryUtils {
 	
 	/**
 	 * 用于SQL查询中的 like子句的条件 <p> 
-	 * 前缀匹配，即返回%xx这样的格式，prefix两边的空格被去掉，如果prefix是null或者空字符串则返回null
+	 * 中间匹配, 即返回%xx%这样的格式, prefix两边的空格被去掉, 如果prefix是null或者空字符串则返回null
 	 * 
 	 * @param paramValue
 	 * @return String
@@ -87,7 +87,7 @@ public final class QueryUtils {
 
 	/**
 	 * 用于SQL查询中的 like子句的条件 <p>
-	 * 前缀匹配，即返回%xx%这样的格式，prefix两边的空格被去掉，如果prefix是null或者空字符串则返回null
+	 * 中间匹配, 即返回%xx%这样的格式, prefix两边的空格被去掉, 如果prefix是null或者空字符串则返回null
 	 * 
 	 * @param prefix
 	 * @return String
@@ -102,7 +102,7 @@ public final class QueryUtils {
 	
 	/**
 	 * 用于SQL查询中的 like子句的条件 <p>
-	 * 前缀匹配，即返回%xx%这样的格式，prefix两边的空格被去掉，如果prefix是null或者空字符串则返回null
+	 * 中间匹配, 即返回%xx%这样的格式, prefix两边的空格被去掉, 如果prefix是null或者空字符串则返回null
 	 * 
 	 * @param prefix
 	 * @return String
@@ -110,7 +110,7 @@ public final class QueryUtils {
 	 */	
 	public static void innerMatch(Map<String, Object> params, String paramName, String paramValue) {
 		if (isNotBlank(paramValue)) {
-			params.put(paramName, paramValue.trim());
+			params.put(paramName, "%" + paramValue.trim() + "%");
 		}
 	}
 
@@ -157,7 +157,7 @@ public final class QueryUtils {
 	}
 
 	/**
-	 * 如果enumObj有code属性并且值为-1，表示查询所有，则不会将这个查询条件加入params
+	 * 如果enumObj有code属性并且值为-1, 表示查询所有, 则不会将这个查询条件加入params
 	 * 
 	 * @param params
 	 * @param paramName		enum的某个属性
@@ -174,7 +174,7 @@ public final class QueryUtils {
 		try {
 			code = ReflectionUtils.getFieldValue(queryValue, clazz, "code");
 		} catch (IllegalArgumentException e) {
-			logger.warn("{} 没有定义 code 属性，忽略次查询条件", clazz.getSimpleName());
+			logger.warn("{} 没有定义 code 属性, 忽略次查询条件", clazz.getSimpleName());
 		}
 		if (code == null) {
 			return;
@@ -183,7 +183,7 @@ public final class QueryUtils {
 	}
 	
 	/**
-	 * 如果enumObj有code属性并且值为-1，表示查询所有，则不会将这个查询条件加入params
+	 * 如果enumObj有code属性并且值为-1, 表示查询所有, 则不会将这个查询条件加入params
 	 * 
 	 * @param params
 	 * @param queryValue
@@ -199,7 +199,7 @@ public final class QueryUtils {
 		try {
 			code = ReflectionUtils.getFieldValue(queryValue, clazz, "desc");
 		} catch (IllegalArgumentException e) {
-			logger.warn("{} 没有定义 code 属性，忽略次查询条件", clazz.getSimpleName());
+			logger.warn("{} 没有定义 code 属性, 忽略次查询条件", clazz.getSimpleName());
 		}
 		if (code == null) {
 			return;
@@ -208,7 +208,7 @@ public final class QueryUtils {
 	}
 	
 	/**
-	 * 如果enumObj有code属性并且值为-1，表示查询所有，则不会将这个查询条件加入params
+	 * 如果enumObj有code属性并且值为-1, 表示查询所有, 则不会将这个查询条件加入params
 	 * 
 	 * @param params
 	 * @param queryValue
@@ -222,7 +222,7 @@ public final class QueryUtils {
 	}
 	
 	/**
-	 * 如果enumObj有code属性并且值为-1，表示查询所有，则不会将这个查询条件加入params
+	 * 如果enumObj有code属性并且值为-1, 表示查询所有, 则不会将这个查询条件加入params
 	 * 
 	 * @param params
 	 * @param queryValue
@@ -251,7 +251,7 @@ public final class QueryUtils {
 		try {
 			propValue = ReflectionUtils.getFieldValue(queryValue, clazz, prop);
 		} catch (IllegalArgumentException e) {
-			logger.warn("{} 没有定义 code 属性，忽略次查询条件", clazz.getSimpleName());
+			logger.warn("{} 没有定义 code 属性, 忽略次查询条件", clazz.getSimpleName());
 		}
 		if (propValue == null) {
 			return;
@@ -260,7 +260,7 @@ public final class QueryUtils {
 	}
 	
 	/**
-	 * 设置数组类型的参数，如果paramValues是null或者长度为0，则不设置该参数。并且如果数组中某元素是null，会过滤掉该元素
+	 * 设置数组类型的参数, 如果paramValues是null或者长度为0, 则不设置该参数。并且如果数组中某元素是null, 会过滤掉该元素
 	 * @param params
 	 * @param paramName
 	 * @param paramValues
