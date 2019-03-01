@@ -25,13 +25,19 @@ import org.apache.commons.io.IOUtils;
 import com.loserico.commons.exception.PrivateDecryptException;
 
 /**
- * RSA非对称加密
+ * RSA 非对称加密
+ * 
+ * RSA 加密演算法是一种非对称加密演算法. 在公开密钥加密和电子商业中RSA被广泛使用. 
+ * RSA是1977年由罗纳德·李维斯特(Ron Rivest), 阿迪·萨莫尔(Adi Shamir) 和伦纳德·阿德曼(Leonard Adleman)一起提出的
+ * 当时他们三人都在麻省理工学院工作, RSA就是他们三人姓氏开头字母拼在一起组成的
+ * 
  * <p>
  * Copyright: Copyright (c) 2018-07-30 13:29
  * <p>
  * Company: DataSense
  * <p>
- * @author Rico Yu	ricoyu520@gmail.com
+ * 
+ * @author Rico Yu ricoyu520@gmail.com
  * @version 1.0
  * @on
  */
@@ -65,12 +71,12 @@ public class Rsa {
 	public static Rsa instance() {
 		if (!keysPresent()) {
 			try {
-				final KeyPairGenerator keyGen = KeyPairGenerator.getInstance(RSA_ALGORITHM);
+				KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(RSA_ALGORITHM);
 
-				//初始化KeyPairGenerator对象,不要被initialize()源码表面上欺骗,其实这里声明的size是生效的
-				keyGen.initialize(KEY_SIZE);
+				//初始化KeyPairGenerator对象
+				keyPairGenerator.initialize(KEY_SIZE);
 				//生成密匙对
-				final KeyPair keyPair = keyGen.generateKeyPair();
+				KeyPair keyPair = keyPairGenerator.generateKeyPair();
 				//得到公钥
 				RSAPublicKey publicKey = (RSAPublicKey) keyPair.getPublic();
 				//得到私钥
@@ -93,7 +99,6 @@ public class Rsa {
 				publicKeyOS.writeObject(publicKey);
 				publicKeyOS.close();
 
-				// Saving the Private key in a file
 				ObjectOutputStream privateKeyOS = new ObjectOutputStream(new FileOutputStream(privateKeyFile));
 				privateKeyOS.writeObject(keyPair.getPrivate());
 				privateKeyOS.close();
@@ -104,33 +109,18 @@ public class Rsa {
 			}
 		} else {
 			try {
-				ObjectInputStream ois = new ObjectInputStream(new FileInputStream(PUBLIC_KEY_FILE));
-				final RSAPublicKey publicKey = (RSAPublicKey) ois.readObject();
+				ObjectInputStream objectInputStream = new ObjectInputStream(new FileInputStream(PUBLIC_KEY_FILE));
+				RSAPublicKey publicKey = (RSAPublicKey) objectInputStream.readObject();
 
-				ois = new ObjectInputStream(new FileInputStream(PRIVATE_KEY_FILE));
-				final RSAPrivateKey privateKey = (RSAPrivateKey) ois.readObject();
-				ois.close();
+				objectInputStream = new ObjectInputStream(new FileInputStream(PRIVATE_KEY_FILE));
+				RSAPrivateKey privateKey = (RSAPrivateKey) objectInputStream.readObject();
+				objectInputStream.close();
 
 				return new Rsa(publicKey, privateKey);
 			} catch (IOException | ClassNotFoundException e) {
 				throw new RuntimeException("获取密钥对失败", e);
 			}
 		}
-	}
-
-	/**
-	 * The method checks if the pair of public and private key has been generated.
-	 * 
-	 * @return flag indicating if the pair of keys were generated.
-	 */
-	private static boolean keysPresent() {
-		File privateKey = new File(PRIVATE_KEY_FILE);
-		File publicKey = new File(PUBLIC_KEY_FILE);
-
-		if (privateKey.exists() && publicKey.exists()) {
-			return true;
-		}
-		return false;
 	}
 
 	public Rsa(String publicKey, String privateKey) {
@@ -305,5 +295,16 @@ public class Rsa {
 		byte[] bytes = publicKey.getEncoded();
 		return Base64.encodeBase64String(bytes);
 		//return Base64.encodeBase64String(bytes);
+	}
+
+	/**
+	 * 检查公钥/私钥是否都已生成
+	 * @return boolean
+	 */
+	private static boolean keysPresent() {
+		File privateKey = new File(PRIVATE_KEY_FILE);
+		File publicKey = new File(PUBLIC_KEY_FILE);
+
+		return privateKey.exists() && publicKey.exists();
 	}
 }

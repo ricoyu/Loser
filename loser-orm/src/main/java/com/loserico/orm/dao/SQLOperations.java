@@ -113,6 +113,7 @@ public interface SQLOperations {
 
 	/**
 	 * 跟namedSqlQuery的差别就是结果集不封装到Bean里面
+	 * List里面存的是Object[], 数组长度取决于你SELECT了几个字段
 	 * 
 	 * @param queryName
 	 * @return

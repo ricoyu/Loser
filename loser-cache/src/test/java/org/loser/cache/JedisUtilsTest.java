@@ -2,6 +2,7 @@ package org.loser.cache;
 
 import static com.loserico.commons.jackson.JacksonUtils.toJson;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Arrays.asList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 
 import java.io.Serializable;
@@ -49,9 +50,9 @@ public class JedisUtilsTest {
 	public void testSetGetStr() {
 		System.out.println(JedisUtils.get("foo"));
 		/*
-		 * boolean result = JedisUtils.set("foo", "bar");
-		 * System.out.println(result); Jedis jedis = JedisUtils.getJedis();
-		 * System.out.println(jedis.get("foo")); jedis.close();
+		 * boolean result = JedisUtils.set("foo", "bar"); System.out.println(result);
+		 * Jedis jedis = JedisUtils.getJedis(); System.out.println(jedis.get("foo"));
+		 * jedis.close();
 		 * 
 		 * System.out.println(JedisUtils.get("foo"));
 		 * System.out.println(JedisUtils.get("foo", String.class));
@@ -60,35 +61,31 @@ public class JedisUtilsTest {
 
 		/*
 		 * System.out.println("==========="); boolean result2 =
-		 * JedisUtils.set(BigDecimal.valueOf(321L),
-		 * BigDecimal.valueOf(123)); System.out.println("result2: " +
-		 * result2);
+		 * JedisUtils.set(BigDecimal.valueOf(321L), BigDecimal.valueOf(123));
+		 * System.out.println("result2: " + result2);
 		 * System.out.println(JedisUtils.get(BigDecimal.valueOf(321L),
 		 * BigDecimal.class));
 		 */
 
 		/*
-		 * System.out.println("==========="); boolean result3 =
-		 * JedisUtils.set(123, LocalDate.now());
-		 * System.out.println("result3: " + result3); LocalDate now =
+		 * System.out.println("==========="); boolean result3 = JedisUtils.set(123,
+		 * LocalDate.now()); System.out.println("result3: " + result3); LocalDate now =
 		 * JedisUtils.get(123, LocalDate.class); System.out.println(now);
 		 */
 
 		/*
 		 * System.out.println("==========="); NonSerializable obj = new
 		 * NonSerializable(BigDecimal.valueOf(100L)); String result4 =
-		 * JedisUtils.set(obj, "hello"); System.out.println("result4: "+
-		 * result4); String value = JedisUtils.get(obj);
-		 * System.out.println("value: " + value);
+		 * JedisUtils.set(obj, "hello"); System.out.println("result4: "+ result4);
+		 * String value = JedisUtils.get(obj); System.out.println("value: " + value);
 		 */
 
 		/*
 		 * System.out.println("==========="); NonSerializable obj = new
 		 * NonSerializable(BigDecimal.valueOf(100L)); // boolean result5 =
-		 * JedisUtils.set(obj, obj); // System.out.println("result5: " +
-		 * result5); NonSerializable value = JedisUtils.get(obj,
-		 * NonSerializable.class); System.out.println("value: " +
-		 * value.getAmount());
+		 * JedisUtils.set(obj, obj); // System.out.println("result5: " + result5);
+		 * NonSerializable value = JedisUtils.get(obj, NonSerializable.class);
+		 * System.out.println("value: " + value.getAmount());
 		 * 
 		 * System.out.println("==========="); NonSerializable obj2 = new
 		 * NonSerializable(BigDecimal.valueOf(100L));
@@ -130,9 +127,9 @@ public class JedisUtilsTest {
 
 	@Test
 	public void testPublish() {
-		//JedisUtils.publish("foo2", "hello");
-		//		JedisUtils.publish("foo2", 123);
-		//JedisUtils.publish("foo2", new NonSerializable(BigDecimal.valueOf(100L)));
+		// JedisUtils.publish("foo2", "hello");
+		// JedisUtils.publish("foo2", 123);
+		// JedisUtils.publish("foo2", new NonSerializable(BigDecimal.valueOf(100L)));
 		JedisUtils.publish("foo2", LocalDate.now());
 		System.out.println("published");
 	}
@@ -170,24 +167,20 @@ public class JedisUtilsTest {
 	@Test
 	public void testGetSetMap() {
 		/*
-		 * Map<Long, String> studentNames = new HashMap<>();
-		 * studentNames.put(123L, "Justin Oh Yuzhen");
-		 * studentNames.put(111L, "Kayla Tan");
+		 * Map<Long, String> studentNames = new HashMap<>(); studentNames.put(123L,
+		 * "Justin Oh Yuzhen"); studentNames.put(111L, "Kayla Tan");
 		 * JedisUtils.hmsetGeneric("studentNames", studentNames);
 		 * 
-		 * Map<Long, String> cachedStudentNames =
-		 * JedisUtils.hgetAll("studentNames", Long.class, String.class);
-		 * System.out.println(toJson(cachedStudentNames));
+		 * Map<Long, String> cachedStudentNames = JedisUtils.hgetAll("studentNames",
+		 * Long.class, String.class); System.out.println(toJson(cachedStudentNames));
 		 * 
 		 * JedisUtils.hset("studentNames", 111L, "Kayla Tan changed");
-		 * cachedStudentNames = JedisUtils.hgetAll("studentNames",
-		 * Long.class, String.class);
-		 * System.out.println(toJson(cachedStudentNames));
+		 * cachedStudentNames = JedisUtils.hgetAll("studentNames", Long.class,
+		 * String.class); System.out.println(toJson(cachedStudentNames));
 		 */
 		/*
-		 * String studentName = JedisUtils.hget("studentNames", 123);
-		 * Map<Long, String> modifiedStudentNames =
-		 * JedisUtils.hmget("studentNames", asList(123L, 111L),
+		 * String studentName = JedisUtils.hget("studentNames", 123); Map<Long, String>
+		 * modifiedStudentNames = JedisUtils.hmget("studentNames", asList(123L, 111L),
 		 * String.class); System.out.println(toJson(modifiedStudentNames));
 		 */
 
@@ -213,13 +206,13 @@ public class JedisUtilsTest {
 		}
 		rebateIds.forEach(System.out::println);
 		rebateIds.add(1234567L);
-		//		referencedTicketsMap.put(Tickets.REBATE, rebateIds);
+		// referencedTicketsMap.put(Tickets.REBATE, rebateIds);
 	}
 
 	@Test
 	public void testMapWithHashKey() {
 		String key = Tickets.PURCHASE_ORDER.name() + ":" + 39121684;
-		//String hashKey = Hashing.sha256().hashString(key, UTF_8).toString();
+		// String hashKey = Hashing.sha256().hashString(key, UTF_8).toString();
 
 		JedisUtils.set(key, 890316L);
 	}
@@ -227,7 +220,7 @@ public class JedisUtilsTest {
 	@Test
 	public void testGetHashKey() {
 		String key = Tickets.PURCHASE_ORDER.name() + ":" + 39121684;
-		//String hashKey = Hashing.sha256().hashString(key, UTF_8).toString();
+		// String hashKey = Hashing.sha256().hashString(key, UTF_8).toString();
 		Long id = JedisUtils.get(key, Long.class);
 		System.out.println(id);
 	}
@@ -289,8 +282,8 @@ public class JedisUtilsTest {
 		boolean success = JedisUtils.unlock("mylock", "wrongToken");
 		System.out.println("用错误的token解锁： " + (success ? "成功" : "失败"));
 
-		//		boolean success2 = JedisUtils.unlock("mylock", token);
-		//		System.out.println("用正确的token解锁： " + (success2 ? "成功" : "失败"));
+		// boolean success2 = JedisUtils.unlock("mylock", token);
+		// System.out.println("用正确的token解锁： " + (success2 ? "成功" : "失败"));
 		SECONDS.sleep(6);
 		Lock lock3 = JedisUtils.lock("mylock", 12);
 		System.out.println("6秒后再次加锁: " + (lock3.locked() ? "失败" : "成功"));
@@ -306,13 +299,13 @@ public class JedisUtilsTest {
 		if (lock.locked()) {
 			System.out.println("第一次成功获取锁");
 		}
-		//		SECONDS.sleep(4);
-		//		System.out.println("等待4秒后尝试获取锁");
-		//		long begin = System.currentTimeMillis();
-		//		JedisUtils.lock("purchaseOrder", 1, TimeUnit.MINUTES);
-		//		long end = System.currentTimeMillis();
-		//		System.out.println(((end - begin) / 1000) + " 秒后第二次成功获取锁");
-		//		System.out.println("第二次成功获取锁");
+		// SECONDS.sleep(4);
+		// System.out.println("等待4秒后尝试获取锁");
+		// long begin = System.currentTimeMillis();
+		// JedisUtils.lock("purchaseOrder", 1, TimeUnit.MINUTES);
+		// long end = System.currentTimeMillis();
+		// System.out.println(((end - begin) / 1000) + " 秒后第二次成功获取锁");
+		// System.out.println("第二次成功获取锁");
 	}
 
 	@Test
@@ -369,7 +362,6 @@ public class JedisUtilsTest {
 		Long value = JedisUtils.toLong(bytes);
 		System.out.println(value);
 	}
-	
 
 	public static class NonSerializable {
 		private BigDecimal amount;
@@ -496,10 +488,17 @@ public class JedisUtilsTest {
 			return desc;
 		}
 	}
-	
+
 	@Test
 	public void testGetList() {
 		List<Long> centreIds = JedisUtils.getList("centreIds", Long.class);
 		centreIds.forEach(System.out::println);
+	}
+
+	@Test
+	public void testGetListLockProblem() {
+		JedisUtils.getList("resources:4", String.class, () -> {
+			return asList("a", "b", "v");
+		}, 10, TimeUnit.MINUTES);
 	}
 }

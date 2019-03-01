@@ -35,7 +35,7 @@ public final class ConcurrentTemplate {
 	
 	/**
 	 * 使用默认的CachedThreadPool异步执行并返回结果, 
-	 * 这是单个任务的一部执行, 不需要配合ConcurrentTemplate.await()使用
+	 * 这是单个任务的异步执行, 不需要配合ConcurrentTemplate.await()使用
 	 * 
 	 * @param executorService
 	 * @param supplier

@@ -77,9 +77,12 @@ import redis.clients.util.Pool;
  */
 public final class JedisUtils {
 
-	public static final String STATUS_SUCCESS = "OK";
-
 	private static final Logger logger = LoggerFactory.getLogger(JedisUtils.class);
+	
+	public static final String STATUS_SUCCESS = "OK";
+	
+	private static final String NON_BLOCKING_LOCK_PREDIX = "$lock:";
+	private static final String NON_BLOCKING_LOCK_SUFFIX = ":nblk$";
 
 	private static volatile Pool<Jedis> pool = null;
 
@@ -368,7 +371,7 @@ public final class JedisUtils {
 		// 没有命中则调用supplier.get()并回填缓存
 		if (object == null) {
 			// 成功获取锁才调supplier并回填
-			Lock lock = lock(key, 1, MINUTES);
+			Lock lock = lock(key, expires, timeUnit);
 			if (lock.locked()) {
 				T result = supplier.get();
 				set(key, result, expires, timeUnit);
@@ -483,7 +486,7 @@ public final class JedisUtils {
 	}
 
 	/**
-	 * 根据key从缓存中取, 如果取不到对应的value则调用supplier并回填, 同时制定key的过期时间
+	 * 根据key从缓存中取, 如果取不到对应的value则调用supplier并回填, 同时指定key的过期时间
 	 * 
 	 * @param key
 	 * @param clazz
@@ -494,11 +497,17 @@ public final class JedisUtils {
 		List<T> object = getList(key, clazz);
 		// 没有命中则调用supplier.get()并回填缓存
 		if (object == null || object.isEmpty()) {
-			// 成功获取锁才调supplier并回填
-			Lock lock = lock(key, 1, MINUTES);
+			/*
+			 * 成功获取锁才调supplier并回填
+			 * 这里锁的时间没关系, 因为拿到锁后执行set操作后就会解锁
+			 * @on
+			 */
+			Lock lock = lock(key, expires, timeUnit);
 			if (lock.locked()) {
 				List<T> result = supplier.get();
-				set(key, result, expires, timeUnit);
+				if (result != null && !result.isEmpty()) {
+					set(key, result, expires, timeUnit);
+				}
 				lock.unlock();
 				return result;
 			} else {// 没有获得锁就再从缓存取一遍, 取不到就拉倒
@@ -2826,14 +2835,23 @@ public final class JedisUtils {
 	 */
 	public static Lock lock(String key, long leaseTime) {
 		String requestId = UUID.randomUUID().toString().replaceAll("-", "");
-		boolean success = setnx(key, requestId, leaseTime, TimeUnit.SECONDS);
-		return new NonBlockingLock(key, requestId, success);
+		String lockKey = nonBlockingLockKey(key);
+		boolean success = setnx(lockKey, requestId, leaseTime, TimeUnit.SECONDS);
+		return new NonBlockingLock(key, requestId, success); //这里传原始的key
 	}
 
+	/**
+	 * 对传入的原始key, 加上前缀/后缀, 组合成最终锁使用的key, 然后尝试对这个最终的key加锁
+	 * @param key
+	 * @param leaseTime
+	 * @param timeUnit
+	 * @return Lock
+	 */
 	public static Lock lock(String key, long leaseTime, TimeUnit timeUnit) {
 		String requestId = UUID.randomUUID().toString().replaceAll("-", "");
-		boolean success = setnx(key, requestId, leaseTime, TimeUnit.SECONDS);
-		return new NonBlockingLock(key, requestId, success);
+		String lockKey = nonBlockingLockKey(key);
+		boolean success = setnx(lockKey, requestId, leaseTime, timeUnit);
+		return new NonBlockingLock(key, requestId, success); //这里传原始的key
 	}
 
 	/**
@@ -2871,7 +2889,8 @@ public final class JedisUtils {
 				return jedis.scriptLoad(IOUtils.readClassPathFile("/lua-scripts/unlock.lua"));
 			});
 
-			long result = (long) jedis.evalsha(setnxSha1, 1, key, token);
+			String lockKey = nonBlockingLockKey(key);
+			long result = (long) jedis.evalsha(setnxSha1, 1, lockKey, token);
 			return result == 1L;
 		} finally {
 			if (jedis != null) {
@@ -3093,4 +3112,12 @@ public final class JedisUtils {
 		return timeoutSeconds.intValue();
 	}
 
+	/**
+	 * 给传入的非阻塞分布式锁的key加上前缀和后缀
+	 * @param originalKey
+	 * @return
+	 */
+	private static String nonBlockingLockKey(String originalKey) {
+		return NON_BLOCKING_LOCK_PREDIX + originalKey + NON_BLOCKING_LOCK_SUFFIX;
+	}
 }

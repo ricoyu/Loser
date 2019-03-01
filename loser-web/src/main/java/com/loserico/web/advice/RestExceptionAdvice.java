@@ -41,6 +41,7 @@ import com.loserico.web.exception.AbstractPropertyExistsException;
 import com.loserico.web.exception.CommonException;
 import com.loserico.web.exception.EntityNotFoundException;
 import com.loserico.web.exception.GeneralValidationException;
+import com.loserico.web.exception.LocalizedException;
 import com.loserico.web.i18n.LocaleContextHolder;
 import com.loserico.web.utils.MessageHelper;
 import com.loserico.web.utils.ValidationUtils;
@@ -319,6 +320,19 @@ public class RestExceptionAdvice extends ResponseEntityExceptionHandler {
 				.status(200)
 				.code(e.getStatusCode())
 				.message(e.getDefaultMessage())
+				.build();
+		return new ResponseEntity(result, HttpStatus.OK);
+	}
+	
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	@ExceptionHandler(LocalizedException.class)
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResponseEntity<Object> handleLocalizedException(LocalizedException e) {
+		logger.error("", e);
+		Result result = Results.fail()
+				.status(200)
+				.code(e.getStatusCode())
+				.message(e.getLocalizedMessage())
 				.build();
 		return new ResponseEntity(result, HttpStatus.OK);
 	}

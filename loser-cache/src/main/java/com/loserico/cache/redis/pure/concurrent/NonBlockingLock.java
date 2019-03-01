@@ -38,12 +38,15 @@ public class NonBlockingLock implements Lock {
 	@Override
 	public void unlock() {
 		if (locked) {
-			JedisUtils.unlock(key, requestId);
+			boolean unlockSuccess = JedisUtils.unlock(key, requestId);
+			if (!unlockSuccess) {
+				throw new OperationNotSupportedException("解锁失败了哟");
+			}
 		} else {
 			throw new OperationNotSupportedException("你还没获取到锁哦");
 		}
 	}
-	
+
 	@Override
 	public void unlockAnyway() {
 		if (locked) {

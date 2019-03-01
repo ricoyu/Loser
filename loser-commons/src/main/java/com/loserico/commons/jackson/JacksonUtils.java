@@ -261,6 +261,7 @@ public final class JacksonUtils {
 		response.setHeader("Access-Control-Allow-Origin", "*");
 		response.setHeader("Access-Control-Allow-Methods", "*");
 		response.setHeader("Access-Control-Allow-Headers", "*");
+		response.setCharacterEncoding("UTF-8");  
 		try {
 			objectMapper.writeValue(response.getWriter(), value);
 		} catch (IOException e) {

@@ -253,11 +253,23 @@ public class ExcelUtils {
 						return null;
 					}
 					return DateUtils.toLocalDate(StringUtils.trimQuote(dateStr));
-				} else if (cellTypeEnum == CellType.NUMERIC) {
+				}
+				
+				LocalDate localDate = DateUtils.toLocalDate(cell.getDateCellValue());
+				if (localDate != null) {
+					return localDate;
+				}
+				/*
+				 * 付款时间
+				 * 2018-9-10
+				 * 
+				 * 遇到Excel某列值是如上, 获取到的CellType却是Numeric, 但是拿到的值是类似65333这样的
+				 * 所以现在改成先拿DateCellValue, 拿不到再走Numberic
+				 */
+				if (cellTypeEnum == CellType.NUMERIC) {
 					String dateStr = String.valueOf((long) cell.getNumericCellValue());
 					return DateUtils.toLocalDate(dateStr);
 				}
-				return DateUtils.toLocalDate(cell.getDateCellValue());
 			} catch (Exception e) {
 				logger.info("调用 cell.getDateCellValue() 失败，改用 cell.getStringCellValue()");
 			}

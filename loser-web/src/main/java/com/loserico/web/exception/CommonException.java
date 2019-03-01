@@ -1,5 +1,9 @@
 package com.loserico.web.exception;
 
+import static java.text.MessageFormat.format;
+
+import java.util.List;
+
 /**
  * 通用异常类,无国际化消息
  * <p>
@@ -24,7 +28,12 @@ public class CommonException extends RuntimeException {
 		this.defaultMessage = message;
 	}
 
-	
+	public CommonException(int statusCode, String messageTemplate, List<?> params) {
+		this.statusCode = statusCode;
+		Object[] paramArr = params.stream().toArray(Object[]::new);
+		this.defaultMessage = format(messageTemplate, paramArr);
+	}
+
 	public CommonException(String[] datas) {
 		this.statusCode = Integer.parseInt(datas[0]);
 		this.defaultMessage = datas[1];
@@ -49,11 +58,9 @@ public class CommonException extends RuntimeException {
 		return getLocalizedMessage();
 	}
 
-
 	public Object getDefaultMessage() {
 		return defaultMessage;
 	}
-
 
 	public void setDefaultMessage(Object defaultMessage) {
 		this.defaultMessage = defaultMessage;
