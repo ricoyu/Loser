@@ -1,7 +1,5 @@
 package com.loserico.nio;
 
-import static org.junit.Assert.*;
-
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.net.InetSocketAddress;
@@ -38,31 +36,32 @@ import org.slf4j.LoggerFactory;
  * You can obtain a channel by calling the java.nio.channels.Channels class’s methods or the methods in
  * classic I/O classes such as RandomAccessFile.
  * 
- * Channel的子类分为两大块：
+ * Channel的子类分为两大块: 
  * 
- * FileChannel，针对文件IO的Channel，可以通过FileInputStream、FileOutputStream和RandomAccessFile来获得，不支持非阻塞模式，进而也就不支持readiness selection 
- * SelectableChannel，除File以外，像对Socket IO做支持的Channel都属于SelectableChannel，支持非阻塞模式和readiness selection
+ * FileChannel
+ * 		针对文件IO的Channel, 可以通过FileInputStream, FileOutputStream和RandomAccessFile来获得, 不支持非阻塞模式, 进而也就不支持readiness selection 
+ * SelectableChannel
+ * 		除File以外, 像对Socket IO做支持的Channel都属于SelectableChannel, 支持非阻塞模式和readiness selection
  * 
  * SelectionKey
- * 
- * 接下来说说在Channel和Selector之间的关联对象SelectionKey。既然是关联对象，那肯定是可以得到连接的两个对象的：
+ * 接下来说说在Channel和Selector之间的关联对象SelectionKey。既然是关联对象, 那肯定是可以得到连接的两个对象的: 
  * public abstract SelectableChannel channel()
  * public abstract Selector selector()
  * 
- * 还有支持的感兴趣的事件，以及已经准备好IO的事件，感兴趣的事件的方法是同名重载，一个为get另一个为set:
+ * 还有支持的感兴趣的事件, 以及已经准备好IO的事件, 感兴趣的事件的方法是同名重载, 一个为get另一个为set:
  * public abstract int interestOps( );
- * public abstract void interestOps (int ops);
+ * public abstract void interestOps(int ops);
  * public abstract int readyOps( );
- * @on
- * Java NIO的通道类似流，但又有些不同：
- * 	既可以从通道中读取数据，又可以写数据到通道。但流的读写通常是单向的。
+
+ * Java NIO的通道类似流, 但又有些不同: 
+ * 	既可以从通道中读取数据, 又可以写数据到通道。但流的读写通常是单向的。
  * 	通道可以异步地读写。
- * 	通道中的数据总是要先读到一个Buffer，或者总是要从一个Buffer中写入。
+ * 	通道中的数据总是要先读到一个Buffer, 或者总是要从一个Buffer中写入。
  * 
  * @author Rico Yu
  * @since 2016-11-27 12:36
  * @version 1.0
- *
+ * @on
  */
 public class ChannelsTest {
 
@@ -112,7 +111,7 @@ public class ChannelsTest {
 
 			while (bytesRead != -1) {
 				System.out.println("Read " + bytesRead);
-				// 注意 buf.flip() 的调用，首先读取数据到Buffer，然后反转Buffer,接着再从Buffer中读取数据。
+				// 注意 buf.flip() 的调用, 首先读取数据到Buffer, 然后反转Buffer,接着再从Buffer中读取数据。
 				byteBuffer.flip();
 
 				while (byteBuffer.hasRemaining()) {
@@ -129,9 +128,8 @@ public class ChannelsTest {
 	}
 
 	/**
-	 * 在Java NIO中，如果两个通道中有一个是FileChannel，那你可以直接将数据从一个channel（译者注：channel中文常译作通道）传输到另外一个channel。
-	 * FileChannel的transferFrom()方法可以将数据从源通道传输到FileChannel中（译者注：
-	 * 这个方法在JDK文档中的解释为将字节从给定的可读取字节通道传输到此通道的文件中）。
+	 * 在Java NIO中, 如果两个通道中有一个是FileChannel, 那你可以直接将数据从一个channel传输到另外一个channel。
+	 * FileChannel的transferFrom()方法可以将数据从源通道传输到FileChannel中
 	 */
 	@Test
 	public void testChannelTransfer() {

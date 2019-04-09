@@ -21,6 +21,18 @@ public class StringJoinerTest {
 		sj.add("ccc");
 		System.out.println(sj.toString());
 	}
+	
+	@Test
+	public void testStringJoiner2() {
+		String[] arr = new String[] {"sishuok", "mutex", "server1"};
+		StringJoiner stringJoiner = new StringJoiner("/");
+		stringJoiner.add("");
+		for (int i = 0; i < arr.length; i++) {
+			String path = arr[i];
+			stringJoiner.add(path);
+			System.out.println(stringJoiner.toString());
+		}
+	}
 
 	/**
 	 * Join String by a delimiter and starting with a supplied prefix and ending with a supplied suffix.

@@ -15,6 +15,7 @@
 		<module>loser-security</module>
 		<module>loser-web</module>
 		<module>loser-io</module>
+		<module>loser-http</module>
 		<module>loser-serializer</module>
 		<module>loser-search</module>
 		<module>peacefish-spring</module>
@@ -23,6 +24,7 @@
 		<module>loser-cache</module>
 		<module>loser-workbook</module>
 		<module>loser-bigdata</module>
+		<module>loser-zk</module>
 	</modules>
 
 	<properties>
@@ -105,12 +107,12 @@
 		<!-- <hadoop.version>1.0.4</hadoop.version> -->
 		<hadoop.version>2.5.2</hadoop.version>
 		<hadoop.version>2.6.5</hadoop.version>
-		<zookeeper.version>3.4.6</zookeeper.version>
+		<zookeeper.version>3.4.13</zookeeper.version>
 		<curator.version>4.0.0</curator.version>
 		<dubbo.version>2.8.4</dubbo.version>
 		<resteasy.version>3.0.19.Final</resteasy.version>
 		<!-- <dubbo.version>2.5.3</dubbo.version> -->
-		<zkclient.version>0.10</zkclient.version>
+		<zkclient.version>0.11</zkclient.version>
 		<netty-version>4.1.6.Final</netty-version>
 		<!-- <netty-version>5.0.0.Alpha2</netty-version> -->
 		<jetty.version>9.3.12.v20160915</jetty.version>

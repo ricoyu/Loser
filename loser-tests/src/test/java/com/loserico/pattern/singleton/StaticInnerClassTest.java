@@ -7,9 +7,9 @@ package com.loserico.pattern.singleton;
  * load static inner class...
  * static inner method
  * 
- * 结论：
- * 加载一个类时，其内部类不会同时被加载。
- * 一个类被加载，当且仅当其某个静态成员（静态域、构造器、静态方法等）被调用时发生。
+ * 结论: 
+ * 加载一个类时, 其内部类不会同时被加载。
+ * 一个类被加载, 当且仅当其某个静态成员(静态域, 构造器, 静态方法等) 被调用时发生。
  * 
  * <p>
  * Copyright: Copyright (c) 2018-05-05 19:46

@@ -13,8 +13,30 @@ public class JedisPoolFactory implements PoolFactory {
 	@Override
 	public Pool<Jedis> createPool(PropertyReader propertyReader) {
 		String host = propertyReader.getString("redis.host");
+		String overrideHost = System.getProperty("LOSER_REDIS_HOST");
+		if (overrideHost != null && !overrideHost.isEmpty()) {
+			host = overrideHost;
+		} else {
+			overrideHost = System.getenv("LOSER_REDIS_HOST");
+			if (overrideHost != null && !overrideHost.isEmpty()) {
+				host = overrideHost;
+			}
+		}
 		int port = propertyReader.getInt("redis.port", 6379);
+		String overridePort = System.getProperty("LOSER_REDIS_PORT");
+		if (overridePort != null && !overridePort.isEmpty()) {
+			port = Integer.parseInt(overridePort);
+		} else {
+			overridePort = System.getenv("LOSER_REDIS_PORT");
+			if (overridePort != null && !overridePort.isEmpty()) {
+				port = Integer.parseInt(overridePort);
+			}
+		}
 		String password = propertyReader.getString("redis.password");
+		String overridePassword = System.getProperty("LOSER_REDIS_PASSWORD");
+		if (overridePassword != null && !overridePassword.isEmpty()) {
+			password = overridePassword;
+		}
 		int timeout = propertyReader.getInt("redis.timeout", 5000); //默认5秒超时
 		int db = propertyReader.getInt("redis.db", 0);
 

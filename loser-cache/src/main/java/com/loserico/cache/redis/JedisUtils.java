@@ -436,6 +436,25 @@ public final class JedisUtils {
 	}
 
 	/**
+	 * 获取Long类型的值, 如果这个key不存在这返回null
+	 * @param key
+	 * @return Long
+	 */
+	public static Long getLong(String key) {
+		Jedis jedis = pool.getResource();
+		try {
+			byte[] value = jedis.get(toBytes(key));
+			if (value != null && value.length > 0) {
+				return toLong(value);
+			}
+			return null;
+		} finally {
+			if (jedis != null) {
+				jedis.close();
+			}
+		}
+	}
+	/**
 	 * key是字符串, value是一个ArrayList, 通过Jackson序列化反序列化
 	 * 
 	 * @param key

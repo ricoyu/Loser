@@ -1,6 +1,5 @@
 package com.loserico.commons.jackson;
 
-import static com.loserico.commons.utils.StringUtils.joinWith;
 import static java.time.format.DateTimeFormatter.ofPattern;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
@@ -21,9 +20,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.http.HttpResponse;
 import org.json.JSONException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,30 +78,42 @@ public final class JacksonUtils {
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	static {
 		JavaTimeModule javaTimeModule = new JavaTimeModule();
-		if (epochBased) { //这是基于epoch miliseconds的
+		if (epochBased) { // 这是基于epoch miliseconds的
 			DateTimeFormatter epochMilisFormater = new DateTimeFormatterBuilder()
 					.appendValue(ChronoField.INSTANT_SECONDS, 1, 19, SignStyle.NEVER) // epoch seconds
 					.appendValue(ChronoField.MILLI_OF_SECOND, 3)// milliseconds
 					.toFormatter().withZone(ZoneOffset.ofHours(8));// 时区统一东八区
 
 			JavaTimeModule module = new JavaTimeModule();
-			module.addSerializer(LocalDate.class, new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer(ofPattern("yyyy-MM-dd")));
-			module.addDeserializer(LocalDate.class, new com.loserico.commons.jackson.serializer.LocalDateDeserializer());
+			module.addSerializer(LocalDate.class,
+					new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer(ofPattern("yyyy-MM-dd")));
+			module.addDeserializer(LocalDate.class,
+					new com.loserico.commons.jackson.serializer.LocalDateDeserializer());
 
-			module.addSerializer(LocalDateTime.class, new com.loserico.commons.jackson.serializer.LocalDateTimeSerializer());
-			module.addDeserializer(LocalDateTime.class, new com.loserico.commons.jackson.serializer.LocalDateTimeDeserializer(epochMilisFormater));
+			module.addSerializer(LocalDateTime.class,
+					new com.loserico.commons.jackson.serializer.LocalDateTimeSerializer());
+			module.addDeserializer(LocalDateTime.class,
+					new com.loserico.commons.jackson.serializer.LocalDateTimeDeserializer(epochMilisFormater));
 
 			module.addSerializer(LocalTime.class, new LocalTimeSerializer(ofPattern("HH:mm:ss")));
 			objectMapper.registerModule(module);
-		} else { //在这是基于日期字符串的形式
-			javaTimeModule.addSerializer(LocalDateTime.class, new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer(ofPattern("yyyy-MM-dd HH:mm:ss")));
-			javaTimeModule.addDeserializer(LocalDateTime.class, new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(ofPattern("yyyy-MM-dd HH:mm:ss")));
+		} else { // 在这是基于日期字符串的形式
+			javaTimeModule.addSerializer(LocalDateTime.class,
+					new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer(
+							ofPattern("yyyy-MM-dd HH:mm:ss")));
+			javaTimeModule.addDeserializer(LocalDateTime.class,
+					new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer(
+							ofPattern("yyyy-MM-dd HH:mm:ss")));
 
-			javaTimeModule.addSerializer(LocalDate.class, new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer(ofPattern("yyyy-MM-dd")));
-			javaTimeModule.addDeserializer(LocalDate.class, new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer(ofPattern("yyyy-MM-dd")));
+			javaTimeModule.addSerializer(LocalDate.class,
+					new com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer(ofPattern("yyyy-MM-dd")));
+			javaTimeModule.addDeserializer(LocalDate.class,
+					new com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer(ofPattern("yyyy-MM-dd")));
 
-			javaTimeModule.addSerializer(LocalTime.class, new com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer(ofPattern("HH:mm:ss")));
-			javaTimeModule.addDeserializer(LocalTime.class, new com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer(ofPattern("HH:mm:ss")));
+			javaTimeModule.addSerializer(LocalTime.class,
+					new com.fasterxml.jackson.datatype.jsr310.ser.LocalTimeSerializer(ofPattern("HH:mm:ss")));
+			javaTimeModule.addDeserializer(LocalTime.class,
+					new com.fasterxml.jackson.datatype.jsr310.deser.LocalTimeDeserializer(ofPattern("HH:mm:ss")));
 		}
 
 		SimpleModule customModule = new SimpleModule();
@@ -136,7 +147,7 @@ public final class JacksonUtils {
 				.withSetterVisibility(JsonAutoDetect.Visibility.PUBLIC_ONLY)
 				.withCreatorVisibility(JsonAutoDetect.Visibility.NONE));
 	}
-	
+
 	/**
 	 * 将json字符串转成指定对象
 	 * 
@@ -251,9 +262,22 @@ public final class JacksonUtils {
 			throw new JSONException(e);
 		}
 	}
-	
+
 	/**
 	 * 直接写数据到HttpServletResponse
+	 * 
+	 * @param response
+	 * @param value
+	 */
+	public static void writeValue(ServletResponse response, Object value) {
+		if (response instanceof HttpServletResponse) {
+			writeValue((HttpServletResponse) response, value);
+		}
+	}
+
+	/**
+	 * 直接写数据到HttpServletResponse
+	 * 
 	 * @param response
 	 * @param value
 	 */
@@ -261,7 +285,10 @@ public final class JacksonUtils {
 		response.setHeader("Access-Control-Allow-Origin", "*");
 		response.setHeader("Access-Control-Allow-Methods", "*");
 		response.setHeader("Access-Control-Allow-Headers", "*");
-		response.setCharacterEncoding("UTF-8");  
+		response.setCharacterEncoding("UTF-8");
+		if (isBlank(response.getContentType())) {
+			response.setContentType("application/json");
+		}
 		try {
 			objectMapper.writeValue(response.getWriter(), value);
 		} catch (IOException e) {

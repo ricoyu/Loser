@@ -16,7 +16,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.http.Consts;
 import org.apache.http.client.HttpClient;
@@ -34,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
-import com.loserico.commons.velocity.tools.IfNotNull;
 
 /**
  * HTTPClient 工具类
@@ -45,9 +43,9 @@ public class HttpUtils {
 	private static final Logger logger = LoggerFactory.getLogger(HttpUtils.class);
 
 	public enum Header {
-		//跨域请求时需要设置该头
+		// 跨域请求时需要设置该头
 		ORIGIN("Origin"),
-		//跨域请求时需要设置该头
+		// 跨域请求时需要设置该头
 		ACCESS_CONTROL_ALLOW_ORIGIN("Access-Control-Allow-Origin"),
 
 		ACCESS_CONTROL_ALLOW_CREDENTIALS("Access-Control-Allow-Credentials"),
@@ -56,7 +54,6 @@ public class HttpUtils {
 
 		CONTENT_LENGTH("Content-Length");
 
-		@SuppressWarnings("unused")
 		private String header;
 
 		private Header(String header) {
@@ -73,20 +70,20 @@ public class HttpUtils {
 	}
 
 	public enum MimeType {
-		//json
+		// json
 		APPLICATION_JSON("application/json"),
-		//js
+		// js
 		APPLICATION_JAVASCRIPT("application/javascript"),
-		//文件下载
+		// 文件下载
 		APPLICATION_OCTET_STREAM("application/octet-stream"),
-		//xml
+		// xml
 		APPLICATION_XML("application/xml"),
-		//表单提交
+		// 表单提交
 		APPLICATION_FORM_URLENCODED("application/x-www-form-urlencoded"),
-		//文件上传
+		// 文件上传
 		MULTIPART_FORM_DATA("multipart/form-data"),
 		TEXT_HTML("text/html"),
-		//设置该请求头以模仿Chrome浏览器
+		// 设置该请求头以模仿Chrome浏览器
 		CHROME_USER_AGENT(
 				"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36");
 
@@ -100,13 +97,13 @@ public class HttpUtils {
 
 	public enum Encoding {
 
-		//UTF-8编码一个中文字符占三个byte
+		// UTF-8编码一个中文字符占三个byte
 		UTF_8("UTF-8"),
-		//GBK编码一个中文字符占两个byte
+		// GBK编码一个中文字符占两个byte
 		GBK("GBK"),
-		//任意字符都占1个byte，因此中文会乱码
+		// 任意字符都占1个byte，因此中文会乱码
 		ASCII("US-ASCII"),
-		//任意字符都占1个byte，因此中文会乱码
+		// 任意字符都占1个byte，因此中文会乱码
 		ISO_8859_1("ISO-8859-1");
 
 		@SuppressWarnings("unused")
@@ -123,6 +120,7 @@ public class HttpUtils {
 	 * Safari/537.36 连接失败重试4次
 	 * 
 	 * @return
+	 * @on
 	 */
 	public static HttpClient chromeHttpClient() {
 		ConnectionConfig connectionConfig = ConnectionConfig.custom().setCharset(Consts.UTF_8).build();
@@ -133,8 +131,11 @@ public class HttpUtils {
 
 		HttpRequestRetryHandler requestRetryHandler = new StandardHttpRequestRetryHandler(4, true);
 
-		CloseableHttpClient httpClient = HttpClients.custom().setUserAgent(MimeType.CHROME_USER_AGENT.toString())
-				.setConnectionManager(connectionManager).setRetryHandler(requestRetryHandler).build();
+		CloseableHttpClient httpClient = HttpClients.custom()
+				.setUserAgent(MimeType.CHROME_USER_AGENT.toString())
+				.setConnectionManager(connectionManager)
+				.setRetryHandler(requestRetryHandler)
+				.build();
 
 		return httpClient;
 	}
@@ -190,18 +191,18 @@ public class HttpUtils {
 	}
 
 	/**
-	 * Map<String, String>形式，转成param1=value1&param2=value2 Map<String,
-	 * List<String>>形式，转成param1=value1&param2=value2&param2=value2
+	 * Map<String, String>形式, 转成: param1=value1&param2=value2 
+	 * Map<String, List<String>>形式, 转成: param1=value1&param2=value2&param2=value2
 	 * 
 	 * @param params
 	 * @return
+	 * @on
 	 */
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static String toParams(Map<String, ?> params) {
 		if (params == null || params.isEmpty()) {
 			return "";
 		}
-		//return Joiner.on("&").withKeyValueSeparator("=").join(params);
 		StringBuilder sb = new StringBuilder();
 		for (String key : params.keySet()) {
 			Object value = params.get(key);
@@ -233,17 +234,13 @@ public class HttpUtils {
 
 		Map<String, List<String>> paramMap = splitQuery(queryString);
 
-		/*
-		 * uri 参数只支持一个
-		 */
+		// uri 参数只支持一个
 		List<String> uris = paramMap.get("uri");
 		if (uris.size() > 0 && isNotBlank(uris.get(0))) {
 			authRequest.setUri(uris.get(0));
 		}
 
-		/*
-		 * timestamp 参数只支持一个
-		 */
+		// timestamp 参数只支持一个
 		List<String> timestamps = paramMap.get("timestamp");
 		if (timestamps.size() > 0 && isNotBlank(timestamps.get(0))) {
 			try {
@@ -253,17 +250,13 @@ public class HttpUtils {
 			}
 		}
 
-		/*
-		 * access_token 参数只支持一个
-		 */
+		// access_token 参数只支持一个
 		List<String> accessTokens = paramMap.get("access_token");
 		if (accessTokens.size() > 0 && isNotBlank(accessTokens.get(0))) {
 			authRequest.setAccessToken(accessTokens.get(0));
 		}
 
-		/*
-		 * 删掉uri, timestamp参数，其他参数继续往后面传递
-		 */
+		// 删掉uri, timestamp参数，其他参数继续往后面传递
 		paramMap.remove("uri");
 		paramMap.remove("timestamp");
 		authRequest.setParams(paramMap);
@@ -304,11 +297,11 @@ public class HttpUtils {
 	 */
 	public static class AuthRequest {
 
-		private String uri; //请求参数里面的uri
+		private String uri; // 请求参数里面的uri
 
-		private String actualUri; //该请求实际访问的URI
+		private String actualUri; // 该请求实际访问的URI
 
-		private long timestamp; //表示这个token的有效期
+		private long timestamp; // 表示这个token的有效期
 
 		private String accessToken;
 
@@ -329,13 +322,14 @@ public class HttpUtils {
 		 * @return
 		 */
 		public boolean requestPathMatchs(String contextPath) {
-			//return actualUri.equalsIgnoreCase(uri);
+			// return actualUri.equalsIgnoreCase(uri);
 			String withoutContextPath = actualUri.replaceFirst(contextPath, "");
 			return uri.endsWith(withoutContextPath);
 		}
-		
+
 		/**
 		 * token中的timestamp和url里面传的参数timestamp要一致
+		 * 
 		 * @param currentTimestamp
 		 * @return boolean
 		 */

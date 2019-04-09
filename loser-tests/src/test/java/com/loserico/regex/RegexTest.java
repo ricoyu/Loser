@@ -172,4 +172,14 @@ public class RegexTest {
 			System.out.println(DateUtils.toLocalDate(matcher.group(2)));
 		}
 	}
+	
+	@Test
+	public void testName() {
+		String message = "Duplicate entry '4521-watch_app-ddd' for key 'user_id'";
+		Pattern pattern = Pattern.compile("^Duplicate entry '(.+)' for key.*");
+		Matcher matcher = pattern.matcher(message);
+		if (matcher.matches()) {
+			System.out.println(matcher.group(1));
+		}
+	}
 }

@@ -26,7 +26,7 @@ public class EagerAntiSerializeCloneClassloaderSingleton implements Serializable
 	private static EagerAntiSerializeCloneClassloaderSingleton sc = new EagerAntiSerializeCloneClassloaderSingleton();
 
 	/*
-	 * An “if condition” inside the constructor can prevent the singleton from
+	 * An "if condition" inside the constructor can prevent the singleton from
 	 * getting instantiated more than once using reflection.
 	 */
 	private EagerAntiSerializeCloneClassloaderSingleton() {
@@ -43,7 +43,8 @@ public class EagerAntiSerializeCloneClassloaderSingleton implements Serializable
 	 * Implement the readResolve() and writeReplace() methods in your singleton
 	 * class and return the same object through them.
 	 * 
-	 * 为了避免此问题，我们需要提供 readResolve() 方法的实现。readResolve(）代替了从流中读取对象。这就确保了在序列化和反序列化的过程中没人可以创建新的实例。
+	 * 为了避免此问题，我们需要提供 readResolve() 方法的实现。readResolve(）代替了从流中读取对象。
+	 * 这就确保了在序列化和反序列化的过程中没人可以创建新的实例。
 	 * @on
 	 */
 	private Object readResolve() throws ObjectStreamException {
