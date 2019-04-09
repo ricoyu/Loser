@@ -1,18 +1,17 @@
 package com.loserico.zookeeper;
 
-import static java.nio.charset.StandardCharsets.*;
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyList;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.StringJoiner;
 import java.util.concurrent.CountDownLatch;
 
 import org.apache.zookeeper.CreateMode;
 import org.apache.zookeeper.KeeperException;
-import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.KeeperException.NoNodeException;
 import org.apache.zookeeper.KeeperException.NodeExistsException;
+import org.apache.zookeeper.Watcher;
 import org.apache.zookeeper.Watcher.Event.KeeperState;
 import org.apache.zookeeper.ZooDefs.Ids;
 import org.apache.zookeeper.ZooKeeper;
@@ -96,7 +95,7 @@ public class ZookeeperClient {
 			zookeeperClient.zk = new ZooKeeper(url, sessionTimeout, (event) -> {
 				if (event.getState() == KeeperState.SyncConnected) {
 					countDownLatch.countDown();
-					connectCallback.process(zookeeperClient);
+					connectCallback.process(zookeeperClient, event);
 				}
 			});
 			initializeChroot(url);

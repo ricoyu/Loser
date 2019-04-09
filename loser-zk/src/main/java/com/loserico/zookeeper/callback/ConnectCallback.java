@@ -1,5 +1,6 @@
 package com.loserico.zookeeper.callback;
 
+import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.ZooKeeper;
 
 import com.loserico.zookeeper.ZookeeperClient;
@@ -20,5 +21,5 @@ import com.loserico.zookeeper.ZookeeperClient;
  */
 public interface ConnectCallback {
 
-	public void process(ZookeeperClient zookeeperClient);
+	public void process(ZookeeperClient zookeeperClient, WatchedEvent event);
 }

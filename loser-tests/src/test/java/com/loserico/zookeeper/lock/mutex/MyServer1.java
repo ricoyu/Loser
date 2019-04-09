@@ -19,7 +19,7 @@ public class MyServer1 {
 
 	private ZookeeperClient startZK(String hostPort, int sessionTime) {
 		this.zookeeperClient = ZookeeperClient
-				.initialize("192.168.102.104:2181,192.168.102.106:2181,192.168.102.107:2181", sessionTime, (client) -> {
+				.initialize("192.168.102.104:2181,192.168.102.106:2181,192.168.102.107:2181", sessionTime, (client, event) -> {
 //					if (!alreadyExecute) {
 						try {
 							List<String> list = client.getChildren(PARENT_NODE, true);
