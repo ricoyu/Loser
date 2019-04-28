@@ -176,13 +176,16 @@ public interface CriteriaOperations {
 	
 	/**
 	 * 根据属性在给定值列表中来获取，可以指定是否包含软删除的对象
+	 * 如果values列表太长, 考虑并发方式分批获取数据? 因为MySQL会限制in语句中条件的数量
+	 * TODO
+	 * 
 	 * @param entityClass
 	 * @param propertyName
-	 * @param value
+	 * @param values
 	 * @param includeDeleted
 	 * @return List<T>
 	 */
-	public <T> List<T> findIn(Class<T> entityClass, String propertyName, Collection<?> value, boolean includeDeleted);
+	public <T> List<T> findIn(Class<T> entityClass, String propertyName, Collection<?> values, boolean includeDeleted);
 	
 	public <T, E> List<T> findIn(Class<T> entityClass, String propertyName, E[] value);
 	public <T, E> List<T> findIn(Class<T> entityClass, String propertyName, E[] value, boolean includeDeleted);

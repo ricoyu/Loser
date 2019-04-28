@@ -540,8 +540,13 @@ public class JpaDao implements JPQLOperations, SQLOperations, CriteriaOperations
 	public <T> List<T> findByProperty(Class<T> entityClass, String propertyName, Object value,
 			boolean includeDeleted) {
 		Objects.requireNonNull(propertyName, "propertyName cannot be null!");
-		JPACriteriaQuery<T> jpaCriteriaQuery = JPACriteriaQuery.from(entityClass, entityManager, hibernateUseQueryCache)
-				.eq(propertyName, value);
+		JPACriteriaQuery<T> jpaCriteriaQuery = JPACriteriaQuery.from(entityClass, entityManager, hibernateUseQueryCache);
+		if (value == null) {
+			jpaCriteriaQuery.isNull(propertyName);
+		} else {
+			jpaCriteriaQuery.eq(propertyName, value);
+		}
+				
 		if (!includeDeleted) {
 			jpaCriteriaQuery.eq("deleted", false);
 		}
@@ -557,9 +562,14 @@ public class JpaDao implements JPQLOperations, SQLOperations, CriteriaOperations
 	public <T> List<T> findByProperty(Class<T> entityClass, String propertyName, Object value,
 			boolean includeDeleted, Page page) {
 		requireNonNull(propertyName, "propertyName cannot be null!");
-		JPACriteriaQuery<T> jpaCriteriaQuery = JPACriteriaQuery.from(entityClass, entityManager, hibernateUseQueryCache)
-				.eq(propertyName, value)
-				.setPage(page);
+		JPACriteriaQuery<T> jpaCriteriaQuery = JPACriteriaQuery.from(entityClass, entityManager, hibernateUseQueryCache);
+		if (value == null) {
+			jpaCriteriaQuery.isNull(propertyName);
+		} else {
+			jpaCriteriaQuery.eq(propertyName, value);
+		}
+				
+		jpaCriteriaQuery.setPage(page);
 		if (!includeDeleted) {
 			jpaCriteriaQuery.eq("deleted", false);
 		}
@@ -583,8 +593,12 @@ public class JpaDao implements JPQLOperations, SQLOperations, CriteriaOperations
 	public <T> List<T> findByProperty(Class<T> entityClass, String propertyName, Object value,
 			boolean includeDeleted, OrderBean... orders) {
 		Objects.requireNonNull(propertyName, "propertyName cannot be null!");
-		JPACriteriaQuery<T> jpaCriteriaQuery = JPACriteriaQuery.from(entityClass, entityManager, hibernateUseQueryCache)
-				.eq(propertyName, value);
+		JPACriteriaQuery<T> jpaCriteriaQuery = JPACriteriaQuery.from(entityClass, entityManager, hibernateUseQueryCache);
+		if (value == null) {
+			jpaCriteriaQuery.isNull(propertyName);
+		} else {
+			jpaCriteriaQuery.eq(propertyName, value);
+		}
 		if (!includeDeleted) {
 			jpaCriteriaQuery.eq("deleted", false);
 		}
@@ -608,8 +622,12 @@ public class JpaDao implements JPQLOperations, SQLOperations, CriteriaOperations
 	public <T> T findUniqueByProperty(Class<T> entityClass, String propertyName, Object value,
 			boolean includeDeleted) {
 		List<T> resultList = null;
-		JPACriteriaQuery<T> jpaCriteriaQuery = JPACriteriaQuery.from(entityClass, entityManager, hibernateUseQueryCache)
-				.eq(propertyName, value);
+		JPACriteriaQuery<T> jpaCriteriaQuery = JPACriteriaQuery.from(entityClass, entityManager, hibernateUseQueryCache);
+		if (value == null) {
+			jpaCriteriaQuery.isNull(propertyName);
+		} else {
+			jpaCriteriaQuery.eq(propertyName, value);
+		}
 		if (!includeDeleted) {
 			jpaCriteriaQuery.eq("deleted", false);
 		}

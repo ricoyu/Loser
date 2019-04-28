@@ -73,7 +73,8 @@ public class JedisTest {
 		 * JedisPoolConfig includes a number of helpful Redis-specific connection pooling defaults.
 		 * @on
 		 */
-		JedisPool pool = new JedisPool(new JedisPoolConfig(), "192.168.102.106");
+//		JedisPool pool = new JedisPool(new JedisPoolConfig(), "192.168.102.106");
+		JedisPool pool = new JedisPool(new JedisPoolConfig(), "localhost", 6379, 3000, "deepdata$", 0, false, null, null, null);
 		try (Jedis jedis = pool.getResource()) {
 			jedis.set("foo", "bar");
 			String foobar = jedis.get("foo");

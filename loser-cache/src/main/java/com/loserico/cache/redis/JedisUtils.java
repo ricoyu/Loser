@@ -1509,8 +1509,12 @@ public final class JedisUtils {
 		 */
 
 		public static String hget(String key, String field) {
-			requireNonNull(key, "key不能为null");
-			requireNonNull(field, "field不能为null");
+			if (key == null || "".equals(key.trim())) {
+				return null;
+			}
+			if (field == null || "".equals(field.trim())) {
+				return null;
+			}
 
 			Jedis jedis = pool.getResource();
 			try {

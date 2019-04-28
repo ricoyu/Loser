@@ -80,5 +80,17 @@ public class DateUtilsTest {
 		System.out.println(now.format(ofPattern("yy")));
 		System.out.println(now.format(ofPattern("MMMyy", Locale.ENGLISH)));
 	}
+	
+	@Test
+	public void testToLocalDate() {
+		LocalDate localDate = DateUtils.toLocalDate("2018/7/1");
+		System.out.println(localDate);
+		localDate = DateUtils.toLocalDate("2018/7/11");
+		System.out.println(localDate);
+		localDate = DateUtils.toLocalDate("2018/07/1");
+		System.out.println(localDate);
+		localDate = DateUtils.toLocalDate("2018/07/11");
+		System.out.println(localDate);
+	}
 
 }

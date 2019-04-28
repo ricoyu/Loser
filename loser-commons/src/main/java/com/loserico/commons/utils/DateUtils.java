@@ -110,6 +110,11 @@ public final class DateUtils {
 	public static final String DATE_FORMAT_EN_3 = "M/d/yyyy";
 	public static final String DATETIME_FORMAT_EN = "MM/dd/yyyy HH:mm:ss";
 	public static final String DATE_FORMAT_EN_4 = "d-MMM-yy"; //15-Sep-18 1-Sep-18 这种格式
+	
+	public static final String DATE_FORMAT_EN_5 = "yyyy/M/d"; //2018/7/1这种格式
+	public static final String DATE_FORMAT_EN_6 = "yyyy/M/dd"; //2018/7/11这种格式
+	public static final String DATE_FORMAT_EN_7 = "yyyy/MM/d"; //2018/11/1这种格式
+	public static final String DATE_FORMAT_EN_8 = "yyyy/MM/dd"; //2018/11/11这种格式
 
 	public static final String UTC_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	public static final String UTC_DATETIME_FORMAT2 = "yyyy-MM-dd'T'HH:mm:ss.SSS";
@@ -152,10 +157,16 @@ public final class DateUtils {
 	private static final String DATE_1 = "\\d{4}-\\d{2}-\\d{1}";
 	private static final String DATE_2 = "\\d{4}-\\d{1}-\\d{2}";
 	private static final String DATE_3 = "\\d{4}-\\d{1}-\\d{1}";
+	
 	private static final String DATE_EN = "\\d{2}-\\d{2}-\\\\d{4}";
 	private static final String DATE_EN_1 = "\\d{1}-\\d{2}-\\\\d{4}";
 	private static final String DATE_EN_2 = "\\d{2}-\\d{1}-\\\\d{4}";
 	private static final String DATE_EN_3 = "\\d{1}-\\d{1}-\\\\d{4}";
+	
+	private static final String DATE_EN_5 = "\\d{4}/\\d{1}/\\d{1}";
+	private static final String DATE_EN_6 = "\\d{4}/\\d{1}/\\d{2}";
+	private static final String DATE_EN_7 = "\\d{4}/\\d{2}/\\d{1}";
+	private static final String DATE_EN_8 = "\\d{4}/\\d{2}/\\d{2}";
 	
 	private static final String DATE_CONCISE = "\\d{8}";
 	//yyyy-MM
@@ -1245,6 +1256,14 @@ public final class DateUtils {
 			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_2));
 		} else if (source.matches(DATE_EN_3)) {
 			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_3));
+		} else if (source.matches(DATE_EN_5)) {
+			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_5));
+		} else if (source.matches(DATE_EN_6)) {
+			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_6));
+		} else if (source.matches(DATE_EN_7)) {
+			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_7));
+		} else if (source.matches(DATE_EN_8)) {
+			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_8));
 		} else if (source.matches(MONTH)) {
 			return LocalDate.parse(source, ofPattern("yyyy-MM"));
 		} else if (source.matches(DATE_CONCISE)) {

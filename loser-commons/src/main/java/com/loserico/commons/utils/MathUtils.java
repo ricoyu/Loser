@@ -557,28 +557,23 @@ public class MathUtils {
 		return v1.longValue() == v2.longValue();
 	}
 
+
 	/**
-	 * <blockquote><pre>
-	 * value1为null, value2不为null	false
-	 * value1不为null, value2为null	false
-	 * value1, value2都为null		true
-	 * 否则比较其int值
-	 * </pre></blockquote>
+	 * 测试v1是否等于v2，小数点末尾的0不计算在内
 	 * 
-	 * @on
 	 * @param v1
 	 * @param v2
-	 * @return boolean
+	 * @return
 	 */
-	public static boolean integerEqual(Integer v1, Integer v2) {
+	public static boolean equals(BigDecimal v1, BigDecimal v2) {
 		if (v1 == null && v2 == null) {
 			return true;
 		}
+
 		if (v1 == null || v2 == null) {
 			return false;
 		}
-
-		return v1.intValue() == v2.intValue();
+		return v1.compareTo(v2) == 0;
 	}
 
 	/**
@@ -595,6 +590,30 @@ public class MathUtils {
 	 * @return boolean
 	 */
 	public static boolean equals(Integer v1, Integer v2) {
+		if (v1 == null && v2 == null) {
+			return true;
+		}
+		if (v1 == null || v2 == null) {
+			return false;
+		}
+
+		return v1.intValue() == v2.intValue();
+	}
+	
+	/**
+	 * <blockquote><pre>
+	 * value1为null, value2不为null	false
+	 * value1不为null, value2为null	false
+	 * value1, value2都为null		true
+	 * 否则比较其int值
+	 * </pre></blockquote>
+	 * 
+	 * @on
+	 * @param v1
+	 * @param v2
+	 * @return boolean
+	 */
+	public static boolean integerEqual(Integer v1, Integer v2) {
 		if (v1 == null && v2 == null) {
 			return true;
 		}

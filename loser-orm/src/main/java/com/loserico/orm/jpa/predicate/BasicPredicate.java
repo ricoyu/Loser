@@ -25,10 +25,18 @@ public class BasicPredicate extends AbstractPredicate {
 		Predicate predicate = null;
 		switch (basicMatchMode) {
 		case EQ:
-			predicate = criteriaBuilder.equal(root.get(getPropertyName()), propertyValue);
+			if (propertyValue != null) {
+				predicate = criteriaBuilder.equal(root.get(getPropertyName()), propertyValue);
+			} else {
+				predicate = criteriaBuilder.isNull(root.get(getPropertyName()));
+			}
 			break;
 		case NE:
-			predicate = criteriaBuilder.notEqual(root.get(getPropertyName()), propertyValue);
+			if (propertyValue != null) {
+				predicate = criteriaBuilder.notEqual(root.get(getPropertyName()), propertyValue);
+			} else {
+				predicate = criteriaBuilder.isNotNull(root.get(getPropertyName()));
+			}
 			break;
 		default:
 			break;

@@ -12,7 +12,7 @@ public class JedisPoolFactory implements PoolFactory {
 	
 	@Override
 	public Pool<Jedis> createPool(PropertyReader propertyReader) {
-		String host = propertyReader.getString("redis.host");
+		String host = propertyReader.getString("redis.host", "localhost");
 		String overrideHost = System.getProperty("LOSER_REDIS_HOST");
 		if (overrideHost != null && !overrideHost.isEmpty()) {
 			host = overrideHost;

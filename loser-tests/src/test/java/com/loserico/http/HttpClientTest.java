@@ -16,6 +16,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
@@ -38,6 +39,15 @@ import com.loserico.commons.jsonpath.JsonPathUtils;
  * @on
  */
 public class HttpClientTest {
+	
+	@Test
+	public void testAddRefererHeader() throws ClientProtocolException, IOException {
+		CloseableHttpClient client = HttpClients.createDefault();
+		HttpGet httpGet = new HttpGet("https://deepdata.b0.upaiyun.com/head-icon/student/fz8aIMR7m871i7HA20190401131246.png!compress");
+		httpGet.addHeader("Referer", "https://nascans.kiddysense.sg/");
+		CloseableHttpResponse response = client.execute(httpGet);
+		System.out.println(response);
+	}
 
 	@Test
 	public void testRequestForJsonResponse() throws ClientProtocolException, IOException {

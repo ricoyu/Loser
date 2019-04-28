@@ -159,6 +159,10 @@ public final class JacksonUtils {
 		if (isBlank(json)) {
 			return null;
 		}
+		
+		if (clazz.isAssignableFrom(String.class)) {
+			return (T)json;
+		}
 		try {
 			return objectMapper.readValue(json, clazz);
 		} catch (IOException e) {

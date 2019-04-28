@@ -27,4 +27,11 @@ public class StringUtilsTest {
 //		System.out.println(StringUtils.subStr(s, 2, 0));
 		System.out.println(StringUtils.subStr(s, 0, -1));
 	}
+	
+	@Test
+	public void testUniqueKey() {
+		for (int i = 0; i < 11; i++) {
+			System.out.println(StringUtils.uniqueKey(50));
+		}
+	}
 }

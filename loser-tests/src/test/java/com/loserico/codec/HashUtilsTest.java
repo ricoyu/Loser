@@ -41,7 +41,7 @@ public class HashUtilsTest {
 	
 	@Test
 	public void testSha256() {
-		System.out.println(HashUtils.sha256("12$32*^&%^3456"));
+		System.out.println(HashUtils.sha256("!@#asd_*(^&^%Jgj&%&^"));
 	}
 
 	@Test
