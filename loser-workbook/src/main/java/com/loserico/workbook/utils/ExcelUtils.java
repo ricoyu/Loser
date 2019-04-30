@@ -4,6 +4,7 @@ import static com.loserico.io.utils.IOUtils.GBK;
 import static com.loserico.workbook.excel.VarInfo.DT;
 import static com.loserico.workbook.excel.VarInfo.NUM;
 import static com.loserico.workbook.excel.VarInfo.STR;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.text.MessageFormat.format;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
@@ -20,6 +21,7 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -397,6 +399,8 @@ public class ExcelUtils {
 	public static Path write2Excel(String template, String sheetName, List<?> pojos) {
 		return write2Excel(template, sheetName, null, pojos);
 	}
+	
+	
 
 	/**
 	 * 模版的第一行是标题 第二行是变量占位符 第三行用于设置格式（style）
@@ -418,6 +422,40 @@ public class ExcelUtils {
 	 */
 	public static Path write2Excel(Path template, int sheetIndex, List<?> pojos) {
 		return write2Excel(template, sheetIndex, null, pojos);
+	}
+	
+	/**
+	 * 写Excel到指定的目录下, 文件名前缀是targetFileName, 后面带上随机字符串
+	 * @param template
+	 * @param sheetName
+	 * @param targetFileName
+	 * @param pojos
+	 * @param targetDir
+	 * @return Path
+	 */
+	public static Path write2Excel(Path template, int sheetIndex, List<?> pojos, Path targetDir) {
+		Path filePath = write2Excel(template, sheetIndex, pojos);
+		if (!targetDir.toFile().exists()) {
+			targetDir.toFile().mkdirs();
+		}
+		Path realPath = targetDir.resolve(filePath.getFileName());
+		IOUtils.copy(filePath, realPath, REPLACE_EXISTING);
+		return realPath;
+	}
+	
+	/**
+	 * 写Excel到指定的目录下, 文件名前缀是targetFileName, 后面带上随机字符串
+	 * 
+	 * @param template
+	 * @param sheetIndex
+	 * @param pojos
+	 * @param targetDir
+	 * @return
+	 */
+	public static Path write2Excel(String template, int sheetIndex, List<?> pojos, String targetDir) {
+		Path templatePath = Paths.get(template);
+		Path targetFirPath = Paths.get(targetDir);
+		return write2Excel(templatePath, sheetIndex, pojos, targetFirPath);
 	}
 
 	/**
@@ -557,6 +595,9 @@ public class ExcelUtils {
 		List<CellWriter> cellWriters = new ArrayList<>();
 		for (int cellIndex = cellBeginIndex; cellIndex < cellEndIndex; cellIndex++) {
 			VarInfo varInfo = varInfo(varRow, cellIndex);
+			if (varInfo == null) {
+				continue;
+			}
 			cellWriters.add(new CellWriter(cellIndex, varInfo));
 		}
 
@@ -597,31 +638,39 @@ public class ExcelUtils {
 	 * 
 	 * @param workbook
 	 * @param worksheet
-	 * @param sourceRowNum
-	 * @param destinationRowNum
+	 * @param styleRowNum 样式所在行
+	 * @param startRowNum 写数据的行号
 	 * @return Row
 	 */
-	private static Row copyRow(Workbook workbook, Sheet worksheet, int sourceRowNum, int destinationRowNum) {
+	private static Row copyRow(Workbook workbook, Sheet worksheet, int styleRowNum, int startRowNum) {
 		// Get the source / new row
-		Row newRow = worksheet.getRow(destinationRowNum);
-		Row sourceRow = worksheet.getRow(sourceRowNum);
+		Row styleRow = worksheet.getRow(styleRowNum);//2 样式行
+		Row startRow = worksheet.getRow(startRowNum);//3
 
-		// If the row exist in destination, push down all rows by 1 else create
-		// a new row
-		if (newRow != null) {
-			worksheet.shiftRows(destinationRowNum, worksheet.getLastRowNum(), 1);
-		} else {
-			newRow = worksheet.createRow(destinationRowNum);
-		}
+		/*
+		 * 如果startRow已经存在, 从startRow开始的行, 依次下移一行
+		 * 如果不存在, 创建一新行
+		 */
+		if (startRow != null) {
+			worksheet.shiftRows(startRowNum, worksheet.getLastRowNum(), 1);
+		} 
+		
+		/*
+		 * 如果开始写数据的行不存在则创建一样
+		 * 但是如果startRow存在, 那么startRow连同他下面的所有行, 会被下移一行, 注意这时候startRow.rowNum会加1
+		 * 那么在调用copyRow()的方法里面执行startRowNum++, 然后调用copyRow(), 下一个循环就又写到同一行上去了
+		 * 所以这里一定要调: worksheet.createRow(startRowNum);
+		 */
+		startRow = worksheet.createRow(startRowNum);
 
-		if (sourceRow == null) { // 没有拷贝的对象，直接返回新创建的行，不去复制style了
-			return newRow;
+		if (styleRow == null) { // 没有拷贝的对象，直接返回新创建的行，不去复制style了
+			return startRow;
 		}
 		// Loop through source columns to add to new row
-		for (int i = 0; i < sourceRow.getLastCellNum(); i++) {
+		for (int i = 0; i < styleRow.getLastCellNum(); i++) {
 			// Grab a copy of the old/new cell
-			Cell oldCell = sourceRow.getCell(i);
-			Cell newCell = newRow.createCell(i);
+			Cell oldCell = styleRow.getCell(i);
+			Cell newCell = startRow.createCell(i);
 
 			// If the old cell is null jump to next cell
 			if (oldCell == null) {
@@ -675,16 +724,16 @@ public class ExcelUtils {
 		// row
 		for (int i = 0; i < worksheet.getNumMergedRegions(); i++) {
 			CellRangeAddress cellRangeAddress = worksheet.getMergedRegion(i);
-			if (cellRangeAddress.getFirstRow() == sourceRow.getRowNum()) {
-				CellRangeAddress newCellRangeAddress = new CellRangeAddress(newRow.getRowNum(),
-						(newRow.getRowNum() + (cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow())),
+			if (cellRangeAddress.getFirstRow() == styleRow.getRowNum()) {
+				CellRangeAddress newCellRangeAddress = new CellRangeAddress(startRow.getRowNum(),
+						(startRow.getRowNum() + (cellRangeAddress.getLastRow() - cellRangeAddress.getFirstRow())),
 						cellRangeAddress.getFirstColumn(),
 						cellRangeAddress.getLastColumn());
 				worksheet.addMergedRegion(newCellRangeAddress);
 			}
 		}
 
-		return newRow;
+		return startRow;
 	}
 
 	public static void removeRow(Sheet sheet, int rowIndex) {
