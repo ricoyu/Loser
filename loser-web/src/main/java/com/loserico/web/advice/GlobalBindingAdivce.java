@@ -45,7 +45,16 @@ public class GlobalBindingAdivce {
 	private static final Pattern DATETIME_SHORT_PATTERN = Pattern.compile(DATETIME_SHORT);
 	// yyyy-MM-dd
 	private static final String DATE = "\\d{4}-\\d{2}-\\d{2}";
+	// dd-MM-yyyy
 	private static final String DATE_EN = "\\d{2}-\\d{2}-\\\\d{4}";
+	// yyyy-MM-d
+	private static final String DATE1 = "\\d{4}-\\d{2}-\\d{1}";
+	// d-MM-yyyy
+	private static final String DATE_EN1 = "\\d{1}-\\d{2}-\\\\d{4}";
+	// yyyy-M-d
+	private static final String DATE2 = "\\d{4}-\\d{1}-\\d{}";
+	// d-M-yyyy
+	private static final String DATE_EN2 = "\\d{1}-\\d{1}-\\\\d{4}";
 	// yyyy-MM
 	private static final String MONTH = "\\d{4}-\\d{2}";
 	private static final String MONTH_CONCISE = "\\d{4}\\d{2}";
@@ -161,10 +170,18 @@ public class GlobalBindingAdivce {
 				try {
 					if (Pattern.matches(DATE, text)) {
 						result = LocalDate.parse(text, ofPattern("yyyy-MM-dd"));
+					} else if (Pattern.matches(DATE1, text)) {
+						result = LocalDate.parse(text, ofPattern("yyyy-MM-d"));
+					} else if (Pattern.matches(DATE2, text)) {
+						result = LocalDate.parse(text, ofPattern("yyyy-M-d"));
 					} else if (Pattern.matches(MONTH, text)) {// yyyy-MM 不含日期
 						result = LocalDate.parse(text + "-01", ofPattern("yyyy-MM-dd"));
 					} else if (Pattern.matches(DATE_EN, text)) {// dd-MM-yyyy 不含时间
 						result = LocalDate.parse(text, ofPattern("dd-MM-yyyy"));
+					} else if (Pattern.matches(DATE_EN1, text)) {// d-MM-yyyy 不含时间
+						result = LocalDate.parse(text, ofPattern("d-MM-yyyy"));
+					} else if (Pattern.matches(DATE_EN2, text)) {// d-M-yyyy 不含时间
+						result = LocalDate.parse(text, ofPattern("d-M-yyyy"));
 					} else { // 认为是Epoch毫秒数
 						result = Instant.ofEpochMilli(Long.parseLong(text)).atZone(ZoneOffset.ofHours(8)).toLocalDate();
 					}

@@ -2,7 +2,16 @@ package com.loserico.web.vo;
 
 import static com.loserico.commons.jackson.JacksonUtils.toJson;
 
+import java.util.Map;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.databind.PropertyNamingStrategy.KebabCaseStrategy;
+
 public class Result {
+	
+	private static final Logger log = LoggerFactory.getLogger(Result.class);
 
 	//请求接口状态码
 	private int status = 200;
@@ -66,6 +75,17 @@ public class Result {
 
 	public void setDebugMessage(Object debugMessage) {
 		this.debugMessage = debugMessage;
+	}
+	
+	@SuppressWarnings("unchecked")
+	public <K, V> Result put(K key, V value) {
+		if (data instanceof Map) {
+			Map<K, V> map = (Map<K, V>)data;
+			map.put(key, value);
+		} else {
+			log.warn("data is not a Map, cannot call put(k, v)");
+		}
+		return this;
 	}
 
 }
