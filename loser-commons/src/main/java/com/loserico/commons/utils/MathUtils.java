@@ -43,7 +43,7 @@ public class MathUtils {
 		}
 		return v1.add(v2).setScale(precision, BigDecimal.ROUND_HALF_UP);
 	}
-	
+
 	public static BigDecimal add(BigDecimal v1, BigDecimal v2) {
 		if (v1 == null) {
 			v1 = BigDecimal.ZERO;
@@ -114,7 +114,7 @@ public class MathUtils {
 		}
 		return v1.subtract(v2).setScale(precision, BigDecimal.ROUND_HALF_UP);
 	}
-	
+
 	public static BigDecimal sub(BigDecimal v1, BigDecimal v2) {
 		if (v1 == null) {
 			v1 = BigDecimal.ZERO;
@@ -259,9 +259,9 @@ public class MathUtils {
 	 * @param v2
 	 * @return
 	 */
-/*	public static boolean equals(BigDecimal v1, int v2) {
-		return equals(v1, BigDecimal.valueOf(v2));
-	}*/
+	/*	public static boolean equals(BigDecimal v1, int v2) {
+			return equals(v1, BigDecimal.valueOf(v2));
+		}*/
 
 	/**
 	 * 测试v1是否等于v2，小数点末尾的0不计算在内
@@ -270,16 +270,16 @@ public class MathUtils {
 	 * @param v2
 	 * @return
 	 */
-/*	public static boolean equals(BigDecimal v1, BigDecimal v2) {
-		if (v1 == null && v2 == null) {
-			return true;
-		}
-
-		if (v1 == null || v2 == null) {
-			return false;
-		}
-		return v1.compareTo(v2) == 0;
-	}*/
+	/*	public static boolean equals(BigDecimal v1, BigDecimal v2) {
+			if (v1 == null && v2 == null) {
+				return true;
+			}
+	
+			if (v1 == null || v2 == null) {
+				return false;
+			}
+			return v1.compareTo(v2) == 0;
+		}*/
 
 	/**
 	 * 测试v1是否大于v2，小数点末尾的0不计算在内
@@ -390,8 +390,8 @@ public class MathUtils {
 	/**
 	 * 提供（相对）精确的除法运算。当发生除不尽的情况时，由scale参数指 定精度，以后的数字四舍五入。
 	 * 
-	 * @param v1 被除数
-	 * @param v2 除数
+	 * @param v1        被除数
+	 * @param v2        除数
 	 * @param precision 表示表示需要精确到小数点以后几位。
 	 * @return 两个参数的商
 	 */
@@ -417,7 +417,7 @@ public class MathUtils {
 	/**
 	 * 提供精确的小数位四舍五入处理。
 	 * 
-	 * @param v 需要四舍五入的数字
+	 * @param v         需要四舍五入的数字
 	 * @param precision 小数点后保留几位
 	 * @return 四舍五入后的结果
 	 */
@@ -478,7 +478,7 @@ public class MathUtils {
 		DecimalFormat df = new DecimalFormat(format.toString());
 		return df.format(v);
 	}
-	
+
 	/**
 	 * 四舍五入保留小数点后precision位
 	 * 
@@ -503,7 +503,7 @@ public class MathUtils {
 		DecimalFormat df = new DecimalFormat(format.toString());
 		return df.format(v);
 	}
-	
+
 	/**
 	 * <blockquote><pre>
 	 * value1为null, value2不为null	false
@@ -557,7 +557,6 @@ public class MathUtils {
 		return v1.longValue() == v2.longValue();
 	}
 
-
 	/**
 	 * 测试v1是否等于v2，小数点末尾的0不计算在内
 	 * 
@@ -574,6 +573,26 @@ public class MathUtils {
 			return false;
 		}
 		return v1.compareTo(v2) == 0;
+	}
+
+	/**
+	 * 测试在保留指定小数位后, v1是否等于v2，小数点末尾的0不计算在内
+	 * 
+	 * @param v1
+	 * @param v2
+	 * @return
+	 */
+	public static boolean equals(BigDecimal v1, BigDecimal v2, int precision) {
+		if (v1 == null && v2 == null) {
+			return true;
+		}
+
+		if (v1 == null || v2 == null) {
+			return false;
+		}
+		BigDecimal scaled1 = v1.setScale(precision, BigDecimal.ROUND_HALF_UP);
+		BigDecimal svaled2 = v2.setScale(precision, BigDecimal.ROUND_HALF_UP);
+		return scaled1.compareTo(svaled2) == 0;
 	}
 
 	/**
@@ -599,7 +618,7 @@ public class MathUtils {
 
 		return v1.intValue() == v2.intValue();
 	}
-	
+
 	/**
 	 * <blockquote><pre>
 	 * value1为null, value2不为null	false
