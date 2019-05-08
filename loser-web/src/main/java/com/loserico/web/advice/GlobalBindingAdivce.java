@@ -87,7 +87,7 @@ public class GlobalBindingAdivce {
 						if (!equalTo(spaces, " ")) {
 							text = text.replace(spaces, " ");
 						}
-						result = DateUtils.parse(text, DateUtils.ISO_DATETIME_SHORT);
+						result = DateUtils.parse(text, DateUtils.FMT_ISO_DATETIME_SHORT);
 						setValue(result);
 						return;
 					}
@@ -99,13 +99,13 @@ public class GlobalBindingAdivce {
 							text = text.replace(spaces, " ");
 						}
 						text = text.replace(spaces, " ");
-						result = DateUtils.parse(text, DateUtils.ISO_DATETIME);
+						result = DateUtils.parse(text, DateUtils.FMT_ISO_DATETIME);
 						setValue(result);
 						return;
 					}
 
 					if (Pattern.matches(DATE, text)) {
-						result = DateUtils.parse(text, DateUtils.ISO_DATE);
+						result = DateUtils.parse(text, DateUtils.FMT_ISO_DATE);
 						setValue(result);
 						return;
 					}

@@ -35,10 +35,18 @@ public class StringPredicate extends AbstractPredicate {
 		Path<String> path = root.get(getPropertyName());
 		switch (compareMode) {
 		case EQ:
-			predicate = criteriaBuilder.equal(path, propertyValue);
+			if (propertyValue != null) {
+				predicate = criteriaBuilder.equal(path, propertyValue);
+			} else {
+				predicate = criteriaBuilder.isNull(path);
+			}
 			break;
 		case NOTEQ:
-			predicate = criteriaBuilder.notEqual(path, propertyValue);
+			if (propertyValue != null) {
+				predicate = criteriaBuilder.notEqual(path, propertyValue);
+			} else {
+				predicate = criteriaBuilder.isNotNull(path);
+			}
 			break;
 		case ANYWHERE:
 			predicate = criteriaBuilder.like(path, String.join("%", propertyValue, "%"));

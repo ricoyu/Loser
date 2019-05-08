@@ -436,7 +436,10 @@ public class MathUtils {
 		return Double.parseDouble(df.format(value));
 	}
 
-	public static String format(double v, int precision) {
+	public static String format(Double v, int precision) {
+		if (v == null) {
+			return null;
+		}
 		if (precision < 0) {
 			throw new IllegalArgumentException("precision不能为负数");
 		}
@@ -453,7 +456,7 @@ public class MathUtils {
 		DecimalFormat df = new DecimalFormat(format.toString());
 		return df.format(value);
 	}
-
+	
 	/**
 	 * 四舍五入保留小数点后precision位
 	 * 
@@ -488,7 +491,7 @@ public class MathUtils {
 	 */
 	public static String format2Currency(BigDecimal v, int precision) {
 		if (v == null) {
-			return null;
+			v = BigDecimal.ZERO;
 		}
 		if (precision < 0) {
 			throw new IllegalArgumentException("precision不能为负数");

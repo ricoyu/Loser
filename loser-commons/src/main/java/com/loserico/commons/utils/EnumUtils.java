@@ -88,6 +88,52 @@ public class EnumUtils {
 	}
 	
 	/**
+	 * 根据value的类型,并根据指定的enum的某个属性去自动解析成对应的enum
+	 * 如果根据property匹配不到, 回退到downgradeProperty去匹配
+	 * 
+	 * 这是为了应对如下情况的enum:
+	 * TO_AUDIT(101, "待审核", "未审核")
+	 * Enum的某个值有描述, 还有别名, 解析的时候希望优先根据描述匹配, 匹配不到根据别名匹配
+	 * 
+	 * @param clazz
+	 * @param value
+	 * @return Enum
+	 * @on
+	 */
+	@SuppressWarnings("rawtypes")
+	public static Enum lookupEnum(Class clazz, Object value, String property, String downgradeProperty) {
+		Enum result = null;
+		if (value instanceof String) {
+			result = lookup(clazz, value.toString(), property);
+			if (result == null) {
+				result = lookup(clazz, value.toString(), downgradeProperty);
+				if (result != null) {
+					return result;
+				}
+				try {
+					Integer propertyValue = Integer.parseInt((String) value);
+					return lookup(clazz, propertyValue, property);
+				} catch (NumberFormatException e) {
+					logger.trace("msg", e);
+					return null;
+				}
+			} else {
+				return result;
+			}
+		}
+		if (value instanceof Long) {
+			return lookup(clazz, (Long) value, property);
+		}
+		if (value instanceof Integer) {
+			return lookup(clazz, (Integer) value, property);
+		}
+		if (value instanceof BigInteger) {
+			return lookup(clazz, (BigInteger) value, property);
+		}
+		return null;
+	}
+	
+	/**
 	 * 泛型化的版本
 	 * @param clazz
 	 * @param value
@@ -97,6 +143,18 @@ public class EnumUtils {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public static <T extends Enum> T toEnum(Class<T> clazz, Object value, String property) {
 		return (T)lookupEnum(clazz, value, property);
+	}
+	
+	/**
+	 * 泛型化的版本
+	 * @param clazz
+	 * @param value
+	 * @param property
+	 * @return T
+	 */
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public static <T extends Enum> T toEnum(Class<T> clazz, Object value, String property, String downgradeProperty) {
+		return (T)lookupEnum(clazz, value, property, downgradeProperty);
 	}
 	
 	/**

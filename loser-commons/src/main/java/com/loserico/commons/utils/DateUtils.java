@@ -23,11 +23,13 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -63,118 +65,181 @@ public final class DateUtils {
 	public static final int SECONDS_PER_HOUR = SECONDS_PER_MINUTE * MINUTES_PER_HOUR;
 
 	/**
-	 * Date format pattern used to parse HTTP date headers in RFC 1123
-	 * format. <p>星期二, 24 五月 2016 13:51:38 CST <p>Tue, 24 May 2016 13:52:03
-	 * CST <p>Wed, 16 Nov 2016 10:43:15 GMT
+	 * Date format pattern used to parse HTTP date headers in RFC 1123 format.
+	 * <p>
+	 * 星期二, 24 五月 2016 13:51:38 CST
+	 * <p>
+	 * Tue, 24 May 2016 13:52:03 CST
+	 * <p>
+	 * Wed, 16 Nov 2016 10:43:15 GMT
 	 */
 	public static final String PATTERN_RFC1123 = "EEE, dd MMM yyyy HH:mm:ss zzz";
 
 	/**
-	 * Date format pattern used to parse HTTP date headers in RFC 1036
-	 * format. Tue, 24-May-16 13:50:15 CST 星期二, 24-五月-16 13:50:34 CST
+	 * Date format pattern used to parse HTTP date headers in RFC 1036 format. Tue, 24-May-16
+	 * 13:50:15 CST 星期二, 24-五月-16 13:50:34 CST
 	 */
 	public static final String PATTERN_RFC1036 = "EEE, dd-MMM-yy HH:mm:ss zzz";
 
 	/**
-	 * Date format pattern used to parse HTTP date headers in ANSI C Tue May
-	 * 24 13:53:34 2016 星期二 五月 24 13:54:01 2016 {@code asctime()} format.
+	 * Date format pattern used to parse HTTP date headers in ANSI C Tue May 24 13:53:34 2016 星期二 五月
+	 * 24 13:54:01 2016 {@code asctime()} format.
 	 */
 	public static final String PATTERN_ASCTIME = "EEE MMM d HH:mm:ss yyyy";
-	//这种形式：Fri, 03 Aug 2018 03:42:07 GMT
-	public static final String HTTP_DATE_HEADER_FORMAT = "EEE, dd MMM yyyy HH:mm:ss z";
 
-	public static final String ISO_DATE = "yyyy-MM-dd";
-	public static final String ISO_DATE_1 = "yyyy-MM-d";
-	public static final String ISO_DATE_2 = "yyyy-M-dd";
-	public static final String ISO_DATE_3 = "yyyy-M-d";
-	public static final String ISO_DATETIME = "yyyy-MM-dd HH:mm:ss";
-	public static final String ISO_DATETIME_1 = "yyyy-MM-d HH:mm:ss";
-	public static final String ISO_DATETIME_2 = "yyyy-M-dd HH:mm:ss";
-	public static final String ISO_DATETIME_3 = "yyyy-M-d HH:mm:ss";
-	public static final String ISO_DATETIME_4 = "yyyy-M-d H:mm:ss";
-	public static final String ISO_DATETIME_5 = "yyyy-MM-d H:mm:ss";
-	public static final String ISO_DATETIME_SHORT = "yyyy-MM-dd HH:mm";
-	public static final String ISO_DATETIME_SHORT_1 = "yyyy-MM-d HH:mm";
-	public static final String ISO_DATETIME_SHORT_2 = "yyyy-M-dd HH:mm";
-	public static final String ISO_DATETIME_SHORT_3 = "yyyy-M-d HH:mm";
-	public static final String ISO_DATETIME_SHORT_4 = "yyyy-M-d H:mm";
-	public static final String ISO_DATETIME_SHORT_5 = "yyyy-MM-d H:mm";
-	public static final String ISO_DATETIME_SHORT_6 = "yyyy-MM-dd H:mm";
-	public static final String ISO_DATETIME_SHORT_7 = "yyyy-M-dd H:mm";
+	private static final List<String[]> DATE_PATTERN_FORMART_LIST = new ArrayList<>();
+	static {
+
+	}
+
+	/**
+	 * -------------- 正则表达式, 日期格式对 -------------------------
+	 */
+	// yyyy-MM-dd
+	private static final String PT_ISO_DATE = "\\d{4}-\\d{2}-\\d{2}";
+	public static final String FMT_ISO_DATE = "yyyy-MM-dd";
+	// yyyy-MM-d
+	private static final String PT_ISO_DATE_1 = "\\d{4}-\\d{2}-\\d{1}";
+	public static final String FMT_ISO_DATE_1 = "yyyy-MM-d";
+	// yyyy-M-dd
+	private static final String PT_ISO_DATE_2 = "\\d{4}-\\d{1}-\\d{2}";
+	public static final String FMT_ISO_DATE_2 = "yyyy-M-dd";
+	// yyyy-M-d
+	private static final String PT_ISO_DATE_3 = "\\d{4}-\\d{1}-\\d{1}";
+	public static final String FMT_ISO_DATE_3 = "yyyy-M-d";
+
+	// MM-dd-yyyy
+	private static final String PT_DATE_EN = "\\d{2}-\\d{2}-\\\\d{4}";
+	public static final String FMT_DATE_FORMAT_EN = "MM/dd/yyyy";
+	// MM-d-yyyy
+	private static final String PT_DATE_EN_1 = "\\d{2}-\\d{1}-\\\\d{4}";
+	public static final String FMT_DATE_FORMAT_EN_1 = "MM/d/yyyy";
+	// M-dd-yyyy
+	private static final String PT_DATE_EN_2 = "\\d{1}-\\d{2}-\\\\d{4}";
+	public static final String FMT_DATE_FORMAT_EN_2 = "M/dd/yyyy";
+	// M-d-yyyy
+	private static final String PT_DATE_EN_3 = "\\d{1}-\\d{1}-\\\\d{4}";
+	public static final String FMT_DATE_FORMAT_EN_3 = "M/d/yyyy";
+
+	// yyyy/MM/dd
+	private static final String PT_DATE_EN_4 = "\\d{4}/\\d{2}/\\d{2}";
+	public static final String FMT_DATE_FORMAT_EN_4 = "yyyy/MM/dd"; // 2018/11/11这种格式
+	// yyyy/MM/d
+	private static final String PT_DATE_EN_5 = "\\d{4}/\\d{2}/\\d{1}";
+	public static final String FMT_DATE_FORMAT_EN_5 = "yyyy/MM/d"; // 2018/11/1这种格式
+	// yyyy/M/dd
+	private static final String PT_DATE_EN_6 = "\\d{4}/\\d{1}/\\d{2}";
+	public static final String FMT_DATE_FORMAT_EN_6 = "yyyy/M/dd"; // 2018/7/11这种格式
+	// yyyy/M/d
+	private static final String PT_DATE_EN_7 = "\\d{4}/\\d{1}/\\d{1}";
+	public static final String FMT_DATE_FORMAT_EN_7 = "yyyy/M/d"; // 2018/7/1这种格式
+
+	// yyyyMMdd
+	private static final String PT_DATE_CONCISE = "\\d{8}";
+	public static final String FMT_DATE_CONCISE = "yyyyMMdd"; // 20180711这种格式
+
+	//d-MMM-yy
+	private static final String PT_DATE_FORMAT_EN_8 = "\\d{1}-\\w{3}-\\d{2}";
+	public static final String FMT_DATE_FORMAT_EN_8 = "d-MMM-yy"; // 15-Sep-18 1-Sep-18 这种格式
+
 	// 2016-05-24 13:54:30.926
 	public static final String ISO_DATE_MILISECONDS = "yyyy-MM-dd HH:mm:ss.SSS";
-
-	public static final String DATE_FORMAT_EN = "MM/dd/yyyy";
-	public static final String DATE_FORMAT_EN_1 = "MM/d/yyyy";
-	public static final String DATE_FORMAT_EN_2 = "M/dd/yyyy";
-	public static final String DATE_FORMAT_EN_3 = "M/d/yyyy";
-	public static final String DATETIME_FORMAT_EN = "MM/dd/yyyy HH:mm:ss";
-	public static final String DATE_FORMAT_EN_4 = "d-MMM-yy"; //15-Sep-18 1-Sep-18 这种格式
 	
-	public static final String DATE_FORMAT_EN_5 = "yyyy/M/d"; //2018/7/1这种格式
-	public static final String DATE_FORMAT_EN_6 = "yyyy/M/dd"; //2018/7/11这种格式
-	public static final String DATE_FORMAT_EN_7 = "yyyy/MM/d"; //2018/11/1这种格式
-	public static final String DATE_FORMAT_EN_8 = "yyyy/MM/dd"; //2018/11/11这种格式
+	// ----------------------- 下面是日期时间类型 ---------------------------------------------------
+	// yyyy-MM-dd HH:mm:ss
+	private static final String PT_ISO_DATETIME = "\\d{4}-\\d{2}-\\d{2}(\\s+)\\d{2}:\\d{2}:\\d{2}";
+	public static final String FMT_ISO_DATETIME = "yyyy-MM-dd HH:mm:ss";
+	// yyyy-MM-d HH:mm:ss
+	private static final String PT_ISO_DATETIME_1 = "\\d{4}-\\d{2}-\\d{1}(\\s+)\\d{2}:\\d{2}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_1 = "yyyy-MM-d HH:mm:ss";
+	// yyyy-M-dd HH:mm:ss
+	private static final String PT_ISO_DATETIME_2 = "\\d{4}-\\d{1}-\\d{2}(\\s+)\\d{2}:\\d{2}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_2 = "yyyy-M-dd HH:mm:ss";
+	// yyyy-M-d HH:mm:ss
+	private static final String PT_ISO_DATETIME_3 = "\\d{4}-\\d{1}-\\d{1}(\\s+)\\d{2}:\\d{2}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_3 = "yyyy-M-d HH:mm:ss";
+	// yyyy-M-d H:mm:ss
+	private static final String PT_ISO_DATETIME_4 = "\\d{4}-\\d{1}-\\d{1}(\\s+)\\d{1}:\\d{2}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_4 = "yyyy-M-d H:mm:ss";
+
+	// yyyy-MM-d H:mm:ss
+	private static final String PT_ISO_DATETIME_5 = "\\d{4}-\\d{2}-\\d{1}(\\s+)\\d{1}:\\d{2}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_5 = "yyyy-MM-d H:mm:ss";
+
+	// yyyy-MM-dd HH:mm
+	private static final String PT_ISO_DATETIME_SHORT = "\\d{4}-\\d{2}-\\d{2}(\\s+)\\d{2}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_SHORT = "yyyy-MM-dd HH:mm";
+	// yyyy-MM-d HH:mm
+	private static final String PT_ISO_DATETIME_SHORT_1 = "\\d{4}-\\d{2}-\\d{1}(\\s+)\\d{2}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_SHORT_1 = "yyyy-MM-d HH:mm";
+	// yyyy-M-dd HH:mm
+	private static final String PT_ISO_DATETIME_SHORT_2 = "\\d{4}-\\d{1}-\\d{2}(\\s+)\\d{2}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_SHORT_2 = "yyyy-M-dd HH:mm";
+	// yyyy-M-d HH:mm
+	private static final String PT_ISO_DATETIME_SHORT_3 = "\\d{4}-\\d{1}-\\d{1}(\\s+)\\d{2}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_SHORT_3 = "yyyy-M-d HH:mm";
+
+	// yyyy-MM-dd H:mm
+	private static final String PT_ISO_DATETIME_SHORT_4 = "\\d{4}-\\d{2}-\\d{2}(\\s+)\\d{1}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_SHORT_4 = "yyyy-MM-dd H:mm";
+	// yyyy-MM-d H:mm
+	private static final String PT_ISO_DATETIME_SHORT_5 = "\\d{4}-\\d{2}-\\d{1}(\\s+)\\d{1}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_SHORT_5 = "yyyy-MM-d H:mm";
+	// yyyy-M-dd H:mm
+	private static final String PT_ISO_DATETIME_SHORT_6 = "\\d{4}-\\d{1}-\\d{2}(\\s+)\\d{1}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_SHORT_6 = "yyyy-M-dd H:mm";
+	// yyyy-M-d H:mm
+	private static final String PT_ISO_DATETIME_SHORT_7 = "\\d{4}-\\d{1}-\\d{1}(\\s+)\\d{1}:\\d{2}";
+	public static final String FMT_ISO_DATETIME_SHORT_7 = "yyyy-M-d H:mm";
+
+	//MM/dd/yyyy HH:mm:ss
+	private static final String PT_DATETIME_FORMAT_EN = "\\d{2}/\\d{2}/\\d{4}(\\s+)\\d{2}:\\d{2}:\\d{2}";
+	public static final String FMT_DATETIME_FORMAT_EN = "MM/dd/yyyy HH:mm:ss";
+	//yyyy/MM/dd HH:mm:ss
+	private static final String PT_DATETIME_FORMAT_EN_1 = "\\d{4}/\\d{2}/\\d{2}(\\s+)\\d{2}:\\d{2}:\\d{2}";
+	public static final String FMT_DATETIME_FORMAT_EN_1 = "yyyy/MM/dd HH:mm:ss";
+	//yyyy/MM/d HH:mm:ss
+	private static final String PT_DATETIME_FORMAT_EN_2 = "\\d{4}/\\d{2}/\\d{1}(\\s+)\\d{2}:\\d{2}:\\d{2}";
+	public static final String FMT_DATETIME_FORMAT_EN_2 = "yyyy/MM/d HH:mm:ss";
+	//yyyy/M/dd HH:mm:ss
+	private static final String PT_DATETIME_FORMAT_EN_3 = "\\d{4}/\\d{1}/\\d{2}(\\s+)\\d{2}:\\d{2}:\\d{2}";
+	public static final String FMT_DATETIME_FORMAT_EN_3 = "yyyy/M/dd HH:mm:ss";
+	//yyyy/M/d HH:mm:ss
+	private static final String PT_DATETIME_FORMAT_EN_4 = "\\d{4}/\\d{1}/\\d{1}(\\s+)\\d{2}:\\d{2}:\\d{2}";
+	public static final String FMT_DATETIME_FORMAT_EN_4 = "yyyy/M/d HH:mm:ss";
+	
+	//MM/dd/yyyy HH:mm:ss
+	private static final String PT_DATETIME_FORMAT_EN_5 = "\\d{2}/\\d{2}/\\d{4}(\\s+)\\d{1}:\\d{2}:\\d{2}";
+	public static final String FMT_DATETIME_FORMAT_EN_5 = "MM/dd/yyyy H:mm:ss";
+	//yyyy/MM/dd HH:mm:ss
+	private static final String PT_DATETIME_FORMAT_EN_6 = "\\d{4}/\\d{2}/\\d{2}(\\s+)\\d{1}:\\d{2}:\\d{2}";
+	public static final String FMT_DATETIME_FORMAT_EN_6 = "yyyy/MM/dd H:mm:ss";
+	//yyyy/MM/d HH:mm:ss
+	private static final String PT_DATETIME_FORMAT_EN_7 = "\\d{4}/\\d{2}/\\d{1}(\\s+)\\d{1}:\\d{2}:\\d{2}";
+	public static final String FMT_DATETIME_FORMAT_EN_7 = "yyyy/MM/d H:mm:ss";
+	//yyyy/M/dd HH:mm:ss
+	private static final String PT_DATETIME_FORMAT_EN_8 = "\\d{4}/\\d{1}/\\d{2}(\\s+)\\d{1}:\\d{2}:\\d{2}";
+	public static final String FMT_DATETIME_FORMAT_EN_8 = "yyyy/M/dd H:mm:ss";
+	//yyyy/M/d HH:mm:ss
+	private static final String PT_DATETIME_FORMAT_EN_9 = "\\d{4}/\\d{1}/\\d{1}(\\s+)\\d{1}:\\d{2}:\\d{2}";
+	public static final String FMT_DATETIME_FORMAT_EN_9 = "yyyy/M/d H:mm:ss";
 
 	public static final String UTC_DATETIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
 	public static final String UTC_DATETIME_FORMAT2 = "yyyy-MM-dd'T'HH:mm:ss.SSS";
 
-	public static final String DEFAULT_FORMAT = ISO_DATETIME;
+	public static final String DEFAULT_FORMAT = FMT_ISO_DATETIME;
 
-	//yyyy-MM-dd HH:mm:ss
-	private static final String DATETIME = "\\d{4}-\\d{2}-\\d{2}(\\s+)\\d{2}:\\d{2}:\\d{2}";
-	//yyyy-MM-d HH:mm:ss
-	private static final String DATETIME_1 = "\\d{4}-\\d{2}-\\d{1}(\\s+)\\d{2}:\\d{2}:\\d{2}";
-	//yyyy-M-dd HH:mm:ss
-	private static final String DATETIME_2 = "\\d{4}-\\d{1}-\\d{2}(\\s+)\\d{2}:\\d{2}:\\d{2}";
-	//yyyy-M-d HH:mm:ss
-	private static final String DATETIME_3 = "\\d{4}-\\d{1}-\\d{1}(\\s+)\\d{2}:\\d{2}:\\d{2}";
-	//yyyy-M-d H:mm:ss
-	private static final String DATETIME_4 = "\\d{4}-\\d{1}-\\d{1}(\\s+)\\d{1}:\\d{2}:\\d{2}";
-	//yyyy-MM-d H:mm:ss
-	private static final String DATETIME_5 = "\\d{4}-\\d{2}-\\d{1}(\\s+)\\d{1}:\\d{2}:\\d{2}";
-	//yyyy-MM-dd HH:mm
-	private static final String DATETIME_SHORT = "\\d{4}-\\d{2}-\\d{2}(\\s+)\\d{2}:\\d{2}";
-	//yyyy-MM-d HH:mm
-	private static final String DATETIME_SHORT_1 = "\\d{4}-\\d{2}-\\d{1}(\\s+)\\d{2}:\\d{2}";
-	//yyyy-M-dd HH:mm
-	private static final String DATETIME_SHORT_2 = "\\d{4}-\\d{1}-\\d{2}(\\s+)\\d{2}:\\d{2}";
-	//yyyy-M-d HH:mm
-	private static final String DATETIME_SHORT_3 = "\\d{4}-\\d{1}-\\d{1}(\\s+)\\d{2}:\\d{2}";
-	//yyyy-M-d H:mm
-	private static final String DATETIME_SHORT_4 = "\\d{4}-\\d{1}-\\d{1}(\\s+)\\d{1}:\\d{2}";
-	//yyyy-MM-d H:mm
-	private static final String DATETIME_SHORT_5 = "\\d{4}-\\d{2}-\\d{1}(\\s+)\\d{1}:\\d{2}";
-	//yyyy-MM-dd H:mm
-	private static final String DATETIME_SHORT_6 = "\\d{4}-\\d{2}-\\d{2}(\\s+)\\d{1}:\\d{2}";
-	//yyyy-M-dd H:mm
-	private static final String DATETIME_SHORT_7 = "\\d{4}-\\d{1}-\\d{2}(\\s+)\\d{1}:\\d{2}";
 
-	private static final String HTTP_DATE_HEADER_PATTERN = "[MTWFS][a-z]{2},\\s+\\d{2}\\s+[JFMASOND][a-z]{2}\\s+\\d{4}\\s+\\d{2}:\\d{2}:\\d{2}\\s+GMT";
-
-	//yyyy-MM-dd
-	private static final String DATE = "\\d{4}-\\d{2}-\\d{2}";
-	private static final String DATE_1 = "\\d{4}-\\d{2}-\\d{1}";
-	private static final String DATE_2 = "\\d{4}-\\d{1}-\\d{2}";
-	private static final String DATE_3 = "\\d{4}-\\d{1}-\\d{1}";
+	private static final String PT_HTTP_DATE_TIME_HEADER_PATTERN = "[MTWFS][a-z]{2},\\s+\\d{2}\\s+[JFMASOND][a-z]{2}\\s+\\d{4}\\s+\\d{2}:\\d{2}:\\d{2}\\s+GMT";
+	// 这种形式：Fri, 03 Aug 2018 03:42:07 GMT
+	public static final String FMT_HTTP_DATE_HEADER_FORMAT = "EEE, dd MMM yyyy HH:mm:ss z";
 	
-	private static final String DATE_EN = "\\d{2}-\\d{2}-\\\\d{4}";
-	private static final String DATE_EN_1 = "\\d{1}-\\d{2}-\\\\d{4}";
-	private static final String DATE_EN_2 = "\\d{2}-\\d{1}-\\\\d{4}";
-	private static final String DATE_EN_3 = "\\d{1}-\\d{1}-\\\\d{4}";
-	
-	private static final String DATE_EN_5 = "\\d{4}/\\d{1}/\\d{1}";
-	private static final String DATE_EN_6 = "\\d{4}/\\d{1}/\\d{2}";
-	private static final String DATE_EN_7 = "\\d{4}/\\d{2}/\\d{1}";
-	private static final String DATE_EN_8 = "\\d{4}/\\d{2}/\\d{2}";
-	
-	private static final String DATE_CONCISE = "\\d{8}";
-	//yyyy-MM
-	private static final String MONTH = "\\d{4}-\\d{2}";
+	// yyyy-MM
+	private static final String PT_MONTH = "\\d{4}-\\d{2}";
 
-	private static final String TIME_LONG = "\\d{2}:\\d{2}:\\d{2}";
-	private static final String TIME_MIDDLE = "\\d{2}:\\d{2}";
-	private static final String TIME_SHORT = "\\d{2}";
+	private static final String PT_TIME_LONG = "\\d{2}:\\d{2}:\\d{2}";
+	private static final String PT_TIME_MIDDLE = "\\d{2}:\\d{2}";
+	private static final String PT_TIME_SHORT = "\\d{2}";
 
 	public static TimeZone PST = TimeZone.getTimeZone("America/Los_Angeles");
 	public static TimeZone LONDON = TimeZone.getTimeZone("Europe/London");
@@ -211,8 +276,7 @@ public final class DateUtils {
 	}
 
 	/**
-	 * Clears thread-local variable containing {@link java.text.DateFormat}
-	 * cache.
+	 * Clears thread-local variable containing {@link java.text.DateFormat} cache.
 	 *
 	 * @since 4.3
 	 */
@@ -221,9 +285,8 @@ public final class DateUtils {
 	}
 
 	/**
-	 * A factory for {@link SimpleDateFormat}s. The instances are stored in
-	 * a threadlocal way because SimpleDateFormat is not threadsafe as noted
-	 * in {@link SimpleDateFormat its javadoc}.
+	 * A factory for {@link SimpleDateFormat}s. The instances are stored in a threadlocal way
+	 * because SimpleDateFormat is not threadsafe as noted in {@link SimpleDateFormat its javadoc}.
 	 *
 	 */
 	final static class SimpleDateFormatHolder {
@@ -237,7 +300,7 @@ public final class DateUtils {
 		 * @return
 		 */
 		public static SimpleDateFormat formatFor(final String pattern) {
-			Assert.notNull(pattern);
+			Objects.requireNonNull(pattern);
 			final SoftReference<Map<String, SimpleDateFormat>> ref = THREADLOCAL_FORMATS.get();
 			Map<String, SimpleDateFormat> formats = ref == null ? null : ref.get();
 			if (formats == null) {
@@ -263,7 +326,7 @@ public final class DateUtils {
 		 * @return
 		 */
 		public static SimpleDateFormat formatFor(final String pattern, TimeZone timezone) {
-			Assert.notNull(pattern);
+			Objects.requireNonNull(pattern);
 			final SoftReference<Map<String, SimpleDateFormat>> ref = THREADLOCAL_FORMATS.get();
 			Map<String, SimpleDateFormat> formats = ref == null ? null : ref.get();
 			if (formats == null) {
@@ -295,7 +358,7 @@ public final class DateUtils {
 		 * @return
 		 */
 		public static SimpleDateFormat formatFor(final String pattern, Locale locale) {
-			Assert.notNull(pattern);
+			Objects.requireNonNull(pattern);
 			final SoftReference<Map<String, SimpleDateFormat>> ref = THREADLOCAL_FORMATS.get();
 			Map<String, SimpleDateFormat> formats = ref == null ? null : ref.get();
 			if (formats == null) {
@@ -321,7 +384,7 @@ public final class DateUtils {
 		 * @return
 		 */
 		public static SimpleDateFormat formatFor(final String pattern, TimeZone timezone, Locale locale) {
-			Assert.notNull(pattern);
+			Objects.requireNonNull(pattern);
 			final SoftReference<Map<String, SimpleDateFormat>> ref = THREADLOCAL_FORMATS.get();
 			Map<String, SimpleDateFormat> formats = ref == null ? null : ref.get();
 			if (formats == null) {
@@ -354,29 +417,81 @@ public final class DateUtils {
 	public static Date parse(String source) {
 		Assert.notNull(source, "Date value");
 		SimpleDateFormat simpleDateFormat = null;
-		if (source.matches(DATETIME)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(DEFAULT_FORMAT);
-		} else if (source.matches(DATETIME_1)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_1);
-		} else if (source.matches(DATETIME_2)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_2);
-		} else if (source.matches(DATETIME_3)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_3);
-		} else if (source.matches(DATETIME_SHORT)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_SHORT);
-		} else if (source.matches(DATETIME_SHORT_1)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_SHORT_1);
-		} else if (source.matches(DATETIME_SHORT_2)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_SHORT_2);
-		} else if (source.matches(DATETIME_SHORT_3)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_SHORT_3);
-		} else if (source.matches(HTTP_DATE_HEADER_PATTERN)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(HTTP_DATE_HEADER_FORMAT, Locale.US);
-		} else if (source.matches(DATE)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATE);
-		} else if (source.matches(DATE_EN)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(DATE_FORMAT_EN);
-		} else if (source.matches(MONTH)) {
+		if (source.matches(PT_ISO_DATETIME)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_1);
+		} else if (source.matches(PT_ISO_DATETIME_1)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_1);
+		} else if (source.matches(PT_ISO_DATETIME_2)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_2);
+		} else if (source.matches(PT_ISO_DATETIME_3)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_3);
+		} else if (source.matches(PT_ISO_DATETIME_4)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_4);
+		} else if (source.matches(PT_ISO_DATETIME_5)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_5);
+		} else if (source.matches(PT_ISO_DATETIME_SHORT)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_SHORT);
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_1)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_SHORT_1);
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_2)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_SHORT_2);
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_3)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_SHORT_3);
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_4)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_SHORT_4);
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_5)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_SHORT_5);
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_6)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_SHORT_6);
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_7)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_SHORT_7);
+		} else if (source.matches(PT_DATETIME_FORMAT_EN)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATETIME_FORMAT_EN);
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_1)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATETIME_FORMAT_EN_1);
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_2)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATETIME_FORMAT_EN_2);
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_3)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATETIME_FORMAT_EN_3);
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_4)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATETIME_FORMAT_EN_4);
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_5)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATETIME_FORMAT_EN_5);
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_6)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATETIME_FORMAT_EN_6);
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_7)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATETIME_FORMAT_EN_7);
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_8)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATETIME_FORMAT_EN_8);
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_9)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATETIME_FORMAT_EN_9);
+		} else if (source.matches(PT_HTTP_DATE_TIME_HEADER_PATTERN)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_HTTP_DATE_HEADER_FORMAT, Locale.US);
+		} else if (source.matches(PT_ISO_DATE)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATE);
+		} else if (source.matches(PT_ISO_DATE_1)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATE_1);
+		} else if (source.matches(PT_ISO_DATE_2)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATE_2);
+		} else if (source.matches(PT_ISO_DATE_3)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATE_3);
+		} else if (source.matches(PT_DATE_EN)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN);
+		} else if (source.matches(PT_DATE_EN_1)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_1);
+		} else if (source.matches(PT_DATE_EN_2)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_2);
+		} else if (source.matches(PT_DATE_EN_3)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_3);
+		} else if (source.matches(PT_DATE_EN_4)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_4);
+		} else if (source.matches(PT_DATE_EN_5)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_5);
+		} else if (source.matches(PT_DATE_EN_6)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_6);
+		} else if (source.matches(PT_DATE_EN_7)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_7);
+		} else if (source.matches(PT_MONTH)) {
 			simpleDateFormat = SimpleDateFormatHolder.formatFor("yyyy-MM");
 		}
 
@@ -399,7 +514,7 @@ public final class DateUtils {
 		if (isBlank(source)) {
 			return null;
 		}
-		Assert.notNull(format);
+		Objects.requireNonNull(format);
 		SimpleDateFormat simpleDateFormat = SimpleDateFormatHolder.formatFor(format);
 		try {
 			return simpleDateFormat.parse(source);
@@ -421,29 +536,49 @@ public final class DateUtils {
 		}
 
 		SimpleDateFormat simpleDateFormat = null;
-		if (source.matches(DATETIME)) {
+		if (source.matches(PT_ISO_DATETIME)) {
 			simpleDateFormat = SimpleDateFormatHolder.formatFor(DEFAULT_FORMAT);
-		} else if (source.matches(DATETIME_1)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_1);
-		} else if (source.matches(DATETIME_2)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_2);
-		} else if (source.matches(DATETIME_3)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_3);
-		} else if (source.matches(DATETIME_SHORT)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_SHORT);
-		} else if (source.matches(DATETIME_SHORT_1)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_SHORT_1);
-		} else if (source.matches(DATETIME_SHORT_2)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_SHORT_2);
-		} else if (source.matches(DATETIME_SHORT_3)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATETIME_SHORT_3);
-		} else if (source.matches(HTTP_DATE_HEADER_PATTERN)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(HTTP_DATE_HEADER_FORMAT, Locale.US);
-		} else if (source.matches(DATE)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(ISO_DATE);
-		} else if (source.matches(DATE_EN)) {
-			simpleDateFormat = SimpleDateFormatHolder.formatFor(DATE_FORMAT_EN);
-		} else if (source.matches(MONTH)) {
+		} else if (source.matches(PT_ISO_DATETIME_1)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_1);
+		} else if (source.matches(PT_ISO_DATETIME_2)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_2);
+		} else if (source.matches(PT_ISO_DATETIME_3)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_3);
+		} else if (source.matches(PT_ISO_DATETIME_SHORT)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_SHORT);
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_1)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_SHORT_1);
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_2)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_SHORT_2);
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_3)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATETIME_SHORT_3);
+		} else if (source.matches(PT_HTTP_DATE_TIME_HEADER_PATTERN)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_HTTP_DATE_HEADER_FORMAT, Locale.US);
+		} else if (source.matches(PT_ISO_DATE)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATE);
+		} else if (source.matches(PT_ISO_DATE_1)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATE_1);
+		} else if (source.matches(PT_ISO_DATE_2)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATE_2);
+		} else if (source.matches(PT_ISO_DATE_3)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_ISO_DATE_3);
+		} else if (source.matches(PT_DATE_EN)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN);
+		} else if (source.matches(PT_DATE_EN_1)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_1);
+		} else if (source.matches(PT_DATE_EN_2)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_2);
+		} else if (source.matches(PT_DATE_EN_2)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_3);
+		} else if (source.matches(PT_DATE_EN_4)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_4);
+		} else if (source.matches(PT_DATE_EN_5)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_5);
+		} else if (source.matches(PT_DATE_EN_6)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_6);
+		} else if (source.matches(PT_DATE_EN_7)) {
+			simpleDateFormat = SimpleDateFormatHolder.formatFor(FMT_DATE_FORMAT_EN_7);
+		} else if (source.matches(PT_MONTH)) {
 			simpleDateFormat = SimpleDateFormatHolder.formatFor("yyyy-MM");
 		}
 
@@ -468,7 +603,7 @@ public final class DateUtils {
 		if (isBlank(source)) {
 			return null;
 		}
-		Assert.notNull(format);
+		Objects.requireNonNull(format);
 		SimpleDateFormat simpleDateFormat = SimpleDateFormatHolder.formatFor(format, timezone);
 		try {
 			return simpleDateFormat.parse(source);
@@ -491,7 +626,7 @@ public final class DateUtils {
 		if (isBlank(source)) {
 			return null;
 		}
-		Assert.notNull(format);
+		Objects.requireNonNull(format);
 		SimpleDateFormat simpleDateFormat = SimpleDateFormatHolder.formatFor(format, locale);
 		try {
 			return simpleDateFormat.parse(source);
@@ -586,7 +721,7 @@ public final class DateUtils {
 	 * @return String
 	 */
 	public static String format(Date date) {
-		Assert.notNull(date);
+		Objects.requireNonNull(date);
 		SimpleDateFormat simpleDateFormat = SimpleDateFormatHolder.formatFor(DEFAULT_FORMAT);
 		return simpleDateFormat.format(date);
 	}
@@ -598,13 +733,13 @@ public final class DateUtils {
 	 * @return String
 	 */
 	public static String format(Date date, String format) {
-		Assert.notNull(date);
+		Objects.requireNonNull(date);
 		SimpleDateFormat simpleDateFormat = SimpleDateFormatHolder.formatFor(format);
 		return simpleDateFormat.format(date);
 	}
 
 	public static String format(Date date, String format, Locale locale) {
-		Assert.notNull(date);
+		Objects.requireNonNull(date);
 		SimpleDateFormat simpleDateFormat = SimpleDateFormatHolder.formatFor(format, locale);
 		return simpleDateFormat.format(date);
 	}
@@ -616,7 +751,7 @@ public final class DateUtils {
 	 * @return String
 	 */
 	public static String format(Date date, TimeZone timeZone) {
-		Assert.notNull(date);
+		Objects.requireNonNull(date);
 		SimpleDateFormat simpleDateFormat = SimpleDateFormatHolder.formatFor(DEFAULT_FORMAT, timeZone);
 		return simpleDateFormat.format(date);
 	}
@@ -628,7 +763,7 @@ public final class DateUtils {
 	 * @return String
 	 */
 	public static String format(Date date, String format, TimeZone timeZone) {
-		Assert.notNull(date);
+		Objects.requireNonNull(date);
 		SimpleDateFormat simpleDateFormat = SimpleDateFormatHolder.formatFor(format, timeZone);
 		return simpleDateFormat.format(date);
 	}
@@ -641,7 +776,7 @@ public final class DateUtils {
 	 * @return String
 	 */
 	public static String format(Date date, TimeZone timeZone, Locale locale) {
-		Assert.notNull(date);
+		Objects.requireNonNull(date);
 		SimpleDateFormat simpleDateFormat = SimpleDateFormatHolder.formatFor(DEFAULT_FORMAT, timeZone, locale);
 		return simpleDateFormat.format(date);
 	}
@@ -654,8 +789,8 @@ public final class DateUtils {
 	 * @return String
 	 */
 	public static String format(Date date, String format, TimeZone timeZone, Locale locale) {
-		Assert.notNull(date);
-		Assert.notNull(format);
+		Objects.requireNonNull(date);
+		Objects.requireNonNull(format);
 		SimpleDateFormat simpleDateFormat = SimpleDateFormatHolder.formatFor(format, timeZone, locale);
 		return simpleDateFormat.format(date);
 	}
@@ -696,7 +831,7 @@ public final class DateUtils {
 		if (localDateTime == null) {
 			return null;
 		}
-		return localDateTime.format(ofPattern(ISO_DATETIME));
+		return localDateTime.format(ofPattern(FMT_ISO_DATETIME));
 	}
 
 	/**
@@ -708,7 +843,7 @@ public final class DateUtils {
 	 * @return String
 	 */
 	public static String convert2TargetTimezone(String source, TimeZone srcTimezone, TimeZone destTimezone) {
-		Assert.notNull(source);
+		Objects.requireNonNull(source);
 		Date srcDate = parse(source, srcTimezone);
 		return format(srcDate, destTimezone);
 	}
@@ -723,8 +858,8 @@ public final class DateUtils {
 	 */
 	public static String convert2TargetTimezone(String source, String format, TimeZone srcTimezone,
 			TimeZone destTimezone) {
-		Assert.notNull(source);
-		Assert.notNull(format);
+		Objects.requireNonNull(source);
+		Objects.requireNonNull(format);
 		Date srcDate = parse(source, format, srcTimezone);
 		return format(srcDate, format, destTimezone);
 	}
@@ -742,9 +877,9 @@ public final class DateUtils {
 	public static String convert2TargetTimezone(String source, String srcFormat, String destFormat,
 			TimeZone srcTimezone,
 			TimeZone destTimezone) {
-		Assert.notNull(source);
-		Assert.notNull(srcFormat);
-		Assert.notNull(destFormat);
+		Objects.requireNonNull(source);
+		Objects.requireNonNull(srcFormat);
+		Objects.requireNonNull(destFormat);
 		Date srcDate = parse(source, srcFormat, srcTimezone);
 		return format(srcDate, destFormat, destTimezone);
 	}
@@ -798,8 +933,7 @@ public final class DateUtils {
 	/**
 	 * 是否是闰年
 	 * 
-	 * @param year
-	 *            年份
+	 * @param year 年份
 	 * @return boolean
 	 */
 	public static boolean isLeapYear(int year) {
@@ -893,7 +1027,7 @@ public final class DateUtils {
 		LocalDate localDate = LocalDate.now();
 		return localDate.withDayOfMonth(1);
 	}
-	
+
 	/**
 	 * 获取上月第一天
 	 * 
@@ -952,7 +1086,7 @@ public final class DateUtils {
 		cal.set(Calendar.DAY_OF_MONTH, 0);
 		return cal.getTime();
 	}
-	
+
 	/**
 	 * 获取上月最后一天
 	 * 
@@ -992,9 +1126,10 @@ public final class DateUtils {
 		LocalDate now = LocalDate.now();
 		return LocalDate.of(now.getYear(), 12, 31);
 	}
-	
+
 	/**
 	 * 返回代表上个月的YearMonth
+	 * 
 	 * @return
 	 */
 	public static YearMonth lastMonth() {
@@ -1004,10 +1139,8 @@ public final class DateUtils {
 	/**
 	 * 判断哪个日期在前 如果日期一在日期二之前，返回true,否则返回false
 	 * 
-	 * @param date1
-	 *            日期一
-	 * @param date2
-	 *            日期二
+	 * @param date1 日期一
+	 * @param date2 日期二
 	 * @return boolean
 	 */
 	public static boolean isBefore(Date date1, Date date2) {
@@ -1044,12 +1177,9 @@ public final class DateUtils {
 	/**
 	 * 获取两个日期的时间差，可以指定年，月，周，日，时，分，秒
 	 * 
-	 * @param date1
-	 *            第一个日期
-	 * @param date2
-	 *            第二个日期<font color="red">此日期必须在date1之后</font>
-	 * @param type
-	 *            DateUtils.Type.X的枚举类型
+	 * @param date1 第一个日期
+	 * @param date2 第二个日期<font color="red">此日期必须在date1之后</font>
+	 * @param type  DateUtils.Type.X的枚举类型
 	 * @return long值
 	 * @throws Exception
 	 */
@@ -1240,42 +1370,40 @@ public final class DateUtils {
 	 */
 	public static LocalDate toLocalDate(String source) {
 		Objects.nonNull(source);
-		if (source.matches(DATE)) {
-			return LocalDate.parse(source, ofPattern(ISO_DATE));
-		} else if (source.matches(DATE_1)) {
-			return LocalDate.parse(source, ofPattern(ISO_DATE_1));
-		} else if (source.matches(DATE_2)) {
-			return LocalDate.parse(source, ofPattern(ISO_DATE_2));
-		} else if (source.matches(DATE_3)) {
-			return LocalDate.parse(source, ofPattern(ISO_DATE_3));
-		} else if (source.matches(DATE_EN)) {
-			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN));
-		} else if (source.matches(DATE_EN_1)) {
-			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_1));
-		} else if (source.matches(DATE_EN_2)) {
-			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_2));
-		} else if (source.matches(DATE_EN_3)) {
-			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_3));
-		} else if (source.matches(DATE_EN_5)) {
-			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_5));
-		} else if (source.matches(DATE_EN_6)) {
-			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_6));
-		} else if (source.matches(DATE_EN_7)) {
-			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_7));
-		} else if (source.matches(DATE_EN_8)) {
-			return LocalDate.parse(source, ofPattern(DATE_FORMAT_EN_8));
-		} else if (source.matches(MONTH)) {
+		if (source.matches(PT_ISO_DATE)) {
+			return LocalDate.parse(source, ofPattern(FMT_ISO_DATE));
+		} else if (source.matches(PT_ISO_DATE_1)) {
+			return LocalDate.parse(source, ofPattern(FMT_ISO_DATE_1));
+		} else if (source.matches(PT_ISO_DATE_2)) {
+			return LocalDate.parse(source, ofPattern(FMT_ISO_DATE_2));
+		} else if (source.matches(PT_ISO_DATE_3)) {
+			return LocalDate.parse(source, ofPattern(FMT_ISO_DATE_3));
+		} else if (source.matches(PT_DATE_EN)) {
+			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN));
+		} else if (source.matches(PT_DATE_EN_1)) {
+			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN_1));
+		} else if (source.matches(PT_DATE_EN_1)) {
+			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN_2));
+		} else if (source.matches(PT_DATE_EN_3)) {
+			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN_3));
+		} else if (source.matches(PT_DATE_EN_5)) {
+			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN_5));
+		} else if (source.matches(PT_DATE_EN_6)) {
+			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN_6));
+		} else if (source.matches(PT_DATE_EN_7)) {
+			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN_7));
+		} else if (source.matches(PT_MONTH)) {
 			return LocalDate.parse(source, ofPattern("yyyy-MM"));
-		} else if (source.matches(DATE_CONCISE)) {
+		} else if (source.matches(PT_DATE_CONCISE)) {
 			return LocalDate.parse(source, ofPattern("yyyyMMdd"));
 		}
 
 		try {
-			return LocalDate.parse(source, DateTimeFormatter.ofPattern(DATE_FORMAT_EN_4, Locale.ENGLISH));
+			return LocalDate.parse(source, DateTimeFormatter.ofPattern(FMT_DATE_FORMAT_EN_4, Locale.ENGLISH));
 		} catch (DateTimeParseException e) {
 		}
 		try {
-			return LocalDate.parse(source, DateTimeFormatter.ofPattern(DATE_FORMAT_EN_4));
+			return LocalDate.parse(source, DateTimeFormatter.ofPattern(FMT_DATE_FORMAT_EN_4));
 		} catch (DateTimeParseException e) {
 		}
 		log.warn("{} does not match any LocalDate format! ", source);
@@ -1377,36 +1505,56 @@ public final class DateUtils {
 		if (isBlank(source)) {
 			return null;
 		}
-		if (source.matches(DATETIME)) {
-			return LocalDateTime.parse(source, ofPattern(DEFAULT_FORMAT));
-		} else if (source.matches(DATETIME_1)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_1));
-		} else if (source.matches(DATETIME_2)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_2));
-		} else if (source.matches(DATETIME_3)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_3));
-		} else if (source.matches(DATETIME_4)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_4));
-		} else if (source.matches(DATETIME_5)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_5));
-		} else if (source.matches(DATETIME_SHORT)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_SHORT));
-		} else if (source.matches(DATETIME_SHORT_1)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_SHORT_1));
-		} else if (source.matches(DATETIME_SHORT_2)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_SHORT_2));
-		} else if (source.matches(DATETIME_SHORT_3)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_SHORT_3));
-		} else if (source.matches(DATETIME_SHORT_4)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_SHORT_4));
-		} else if (source.matches(DATETIME_SHORT_5)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_SHORT_5));
-		} else if (source.matches(DATETIME_SHORT_6)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_SHORT_6));
-		} else if (source.matches(DATETIME_SHORT_7)) {
-			return LocalDateTime.parse(source, ofPattern(ISO_DATETIME_SHORT_7));
-		} else if (source.matches(HTTP_DATE_HEADER_PATTERN)) {
-			SimpleDateFormat format = SimpleDateFormatHolder.formatFor(HTTP_DATE_HEADER_FORMAT, Locale.US);
+		if (source.matches(PT_ISO_DATETIME)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME));
+		} else if (source.matches(PT_ISO_DATETIME_1)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_1));
+		} else if (source.matches(PT_ISO_DATETIME_2)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_2));
+		} else if (source.matches(PT_ISO_DATETIME_3)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_3));
+		} else if (source.matches(PT_ISO_DATETIME_4)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_4));
+		} else if (source.matches(PT_ISO_DATETIME_5)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_5));
+		} else if (source.matches(PT_ISO_DATETIME_SHORT)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_SHORT));
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_1)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_SHORT_1));
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_2)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_SHORT_2));
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_3)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_SHORT_3));
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_4)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_SHORT_4));
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_5)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_SHORT_5));
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_6)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_SHORT_6));
+		} else if (source.matches(PT_ISO_DATETIME_SHORT_7)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_ISO_DATETIME_SHORT_7));
+		} else if (source.matches(PT_DATETIME_FORMAT_EN)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_DATETIME_FORMAT_EN));
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_1)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_DATETIME_FORMAT_EN_1));
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_2)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_DATETIME_FORMAT_EN_2));
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_3)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_DATETIME_FORMAT_EN_3));
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_4)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_DATETIME_FORMAT_EN_4));
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_5)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_DATETIME_FORMAT_EN_5));
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_6)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_DATETIME_FORMAT_EN_6));
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_7)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_DATETIME_FORMAT_EN_7));
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_8)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_DATETIME_FORMAT_EN_8));
+		} else if (source.matches(PT_DATETIME_FORMAT_EN_9)) {
+			return LocalDateTime.parse(source, ofPattern(FMT_DATETIME_FORMAT_EN_9));
+		} else if (source.matches(PT_HTTP_DATE_TIME_HEADER_PATTERN)) {
+			SimpleDateFormat format = SimpleDateFormatHolder.formatFor(FMT_HTTP_DATE_HEADER_FORMAT, Locale.US);
 			try {
 				return toLocalDateTime(format.parse(source));
 			} catch (ParseException e) {
@@ -1682,12 +1830,12 @@ public final class DateUtils {
 		LocalDate now = LocalDate.now();
 		return now.getMonthValue();
 	}
-	
+
 	public static boolean isWeekend(LocalDate localDate) {
 		if (localDate == null) {
 			return false;
 		}
-		
+
 		DayOfWeek dayOfWeek = localDate.getDayOfWeek();
 		return dayOfWeek == DayOfWeek.SATURDAY || dayOfWeek == DayOfWeek.SUNDAY;
 	}

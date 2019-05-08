@@ -37,10 +37,18 @@ public class BooleanPredicate extends AbstractPredicate {
 		Path path = root.get(getPropertyName());
 		switch (compareMode) {
 		case EQ:
-			predicate = criteriaBuilder.equal(path, propertyValue);
+			if (propertyValue != null) {
+				predicate = criteriaBuilder.equal(path, propertyValue);
+			} else {
+				predicate = criteriaBuilder.isNull(path);
+			}
 			break;
 		case NOTEQ:
-			predicate = criteriaBuilder.notEqual(path, propertyValue);
+			if (propertyValue != null) {
+				predicate = criteriaBuilder.notEqual(path, propertyValue);
+			} else {
+				predicate = criteriaBuilder.isNotNull(path);
+			}
 		}
 		return predicate;
 	}

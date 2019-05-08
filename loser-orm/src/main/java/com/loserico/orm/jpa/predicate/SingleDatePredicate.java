@@ -43,7 +43,11 @@ public class SingleDatePredicate extends AbstractDatePredicate {
 			predicate = criteriaBuilder.lessThanOrEqualTo(path, specifiedDate);
 			break;
 		case EXACT:
-			predicate = criteriaBuilder.equal(path, specifiedDate);
+			if (specifiedDate != null) {
+				predicate = criteriaBuilder.equal(path, specifiedDate);
+			} else {
+				predicate = criteriaBuilder.isNull(path);
+			}
 			break;
 		case LATER_THAN:
 			predicate = criteriaBuilder.greaterThan(path, specifiedDate);

@@ -40,13 +40,13 @@ public class DateArgumentResolver implements HandlerMethodArgumentResolver {
 
 		Date result = null;
 		if (Pattern.matches("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}", value)) {
-			result = DateUtils.parse(value, DateUtils.ISO_DATETIME_SHORT);
+			result = DateUtils.parse(value, DateUtils.FMT_ISO_DATETIME_SHORT);
 		} else if (Pattern.matches("\\d{4}-\\d{2}-\\d{2}\\s+\\d{2}:\\d{2}:\\d{2}", value)) {
-			result = DateUtils.parse(value, DateUtils.ISO_DATETIME);
+			result = DateUtils.parse(value, DateUtils.FMT_ISO_DATETIME);
 		} else if (Pattern.matches("\\d{4}-\\d{2}-\\d{1}\\s+\\d{2}:\\d{2}:\\d{2}", value)) {
 			result = DateUtils.parse(value, "yyyy-MM-dd HH:mm:ss");
 		} else if (Pattern.matches("\\d{4}-\\d{2}-\\d{2}", value)) {
-			result = DateUtils.parse(value, DateUtils.ISO_DATE);
+			result = DateUtils.parse(value, DateUtils.FMT_ISO_DATE);
 		}
 
 		return result;

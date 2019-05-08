@@ -162,4 +162,69 @@ public class EnumUtilsTest {
 		}
 
 	}
+	
+	@Test
+	public void testAlias() {
+		SettlementAuditState auditState = (SettlementAuditState)EnumUtils.lookupEnum(SettlementAuditState.class, "未审核", "desc", "alias");
+		System.out.println(auditState);
+		
+		SettlementAuditState auditState2 = EnumUtils.toEnum(SettlementAuditState.class, "未审核", "desc", "alias");
+		System.out.println(auditState2);
+	}
+	
+	public enum SettlementAuditState{
+
+		ALL(-1, "全部"),
+		TO_AUDIT(101, "待审核", "未审核"),
+		AUDITTING(102, "审核中"),
+		PASS(103, "审核通过"),
+		REJECT(104, "审核驳回");
+		
+	    private int code;
+	    private String desc;
+	    private String alias;
+
+		private SettlementAuditState(int code, String desc) {
+			this.code = code;
+			this.desc = desc;
+		}
+		
+		private SettlementAuditState(int code, String desc, String alias) {
+			this.code = code;
+			this.desc = desc;
+			this.alias = alias;
+		}
+
+		public int getCode() {
+			return code;
+		}
+
+		public void setCode(int code) {
+			this.code = code;
+		}
+
+		@JsonValue
+		public String getDesc() {
+			return desc;
+		}
+
+		public void setDesc(String desc) {
+			this.desc = desc;
+		}
+	    
+		public String getAlias() {
+			return alias;
+		}
+
+		public void setAlias(String alias) {
+			this.alias = alias;
+		}
+
+		@Override
+		public String toString() {
+			return desc;
+		}
+		
+	}
+
 }

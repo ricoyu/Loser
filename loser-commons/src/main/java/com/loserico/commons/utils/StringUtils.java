@@ -69,55 +69,60 @@ public abstract class StringUtils {
 				.skipNulls()
 				.join(elements);
 	}
-	
+
 	public static String joinWith(String spliter, Object... elements) {
 		return Joiner.on(spliter)
 				.skipNulls()
 				.join(elements);
 	}
-	
-    /**
-     * <p>Joins the elements of the provided varargs into a
-     * single String containing the provided elements.</p>
-     *
-     * <p>No delimiter is added before or after the list.
-     * {@code null} elements and separator are treated as empty Strings ("").</p>
-     *
-     * <pre>
-     * StringUtils.joinWith(",", {"a", "b"})        = "a,b"
-     * StringUtils.joinWith(",", {"a", "b",""})     = "a,b,"
-     * StringUtils.joinWith(",", {"a", null, "b"})  = "a,,b"
-     * StringUtils.joinWith(null, {"a", "b"})       = "ab"
-     * StringUtils.joinWith(",", [123,456])       = "123,456"
-     * </pre>
-     *
-     * @param separator the separator character to use, null treated as ""
-     * @param objects the varargs providing the values to join together. {@code null} elements are treated as ""
-     * @return the joined String.
-     * @throws java.lang.IllegalArgumentException if a null varargs is provided
-     * @since 3.5
-     */
-    public static String joinWith(final String separator, final List<?> objects) {
-        if (objects == null) {
-            throw new IllegalArgumentException("Object varargs must not be null");
-        }
 
-        final String sanitizedSeparator = defaultString(separator, EMPTY_STRING);
+	/**
+	 * <p>
+	 * Joins the elements of the provided varargs into a single String containing the provided
+	 * elements.
+	 * </p>
+	 *
+	 * <p>
+	 * No delimiter is added before or after the list. {@code null} elements and separator are
+	 * treated as empty Strings ("").
+	 * </p>
+	 *
+	 * <pre>
+	 * StringUtils.joinWith(",", {"a", "b"})        = "a,b"
+	 * StringUtils.joinWith(",", {"a", "b",""})     = "a,b,"
+	 * StringUtils.joinWith(",", {"a", null, "b"})  = "a,,b"
+	 * StringUtils.joinWith(null, {"a", "b"})       = "ab"
+	 * StringUtils.joinWith(",", [123,456])       = "123,456"
+	 * </pre>
+	 *
+	 * @param separator the separator character to use, null treated as ""
+	 * @param objects   the varargs providing the values to join together. {@code null} elements are
+	 *                  treated as ""
+	 * @return the joined String.
+	 * @throws java.lang.IllegalArgumentException if a null varargs is provided
+	 * @since 3.5
+	 */
+	public static String joinWith(final String separator, final List<?> objects) {
+		if (objects == null) {
+			throw new IllegalArgumentException("Object varargs must not be null");
+		}
 
-        final StringBuilder result = new StringBuilder();
+		final String sanitizedSeparator = defaultString(separator, EMPTY_STRING);
 
-        final Iterator<?> iterator = objects.iterator();
-        while (iterator.hasNext()) {
-            final String value = Objects.toString(iterator.next(), "");
-            result.append(value);
+		final StringBuilder result = new StringBuilder();
 
-            if (iterator.hasNext()) {
-                result.append(sanitizedSeparator);
-            }
-        }
+		final Iterator<?> iterator = objects.iterator();
+		while (iterator.hasNext()) {
+			final String value = Objects.toString(iterator.next(), "");
+			result.append(value);
 
-        return result.toString();
-    }
+			if (iterator.hasNext()) {
+				result.append(sanitizedSeparator);
+			}
+		}
+
+		return result.toString();
+	}
 
 	public static String join(String spliter, Collection<?> elements) {
 		return Joiner.on(spliter)
@@ -128,7 +133,7 @@ public abstract class StringUtils {
 	/**
 	 * 将字符串有某种编码转变成另一种编码
 	 * 
-	 * @param string 编码的字符串
+	 * @param string        编码的字符串
 	 * @param originCharset 原始编码格式
 	 * @param targetCharset 目标编码格式
 	 * @return String 编码后的字符串
@@ -140,7 +145,7 @@ public abstract class StringUtils {
 	/**
 	 * URL编码
 	 * 
-	 * @param string 编码字符串
+	 * @param string  编码字符串
 	 * @param charset 编码格式
 	 * @return String
 	 */
@@ -164,7 +169,7 @@ public abstract class StringUtils {
 	/**
 	 * URL编码
 	 * 
-	 * @param string 解码字符串
+	 * @param string  解码字符串
 	 * @param charset 解码格式
 	 * @return String
 	 */
@@ -230,7 +235,7 @@ public abstract class StringUtils {
 		return s1.trim().equals(s2.trim());
 	}
 
-    /**
+	/**
      * <p>Compares two String, returning {@code true} if they represent
      * equal sequences of characters.</p>
      *
@@ -253,7 +258,7 @@ public abstract class StringUtils {
      * @on
 	 */
 	public static boolean equalTo(String s1, String s2) {
-		if(s1 == null && s2 == null) {
+		if (s1 == null && s2 == null) {
 			return true;
 		}
 		if (s1 == null) {
@@ -435,9 +440,10 @@ public abstract class StringUtils {
 
 		return JSONObject.quote(value.toString());
 	}
-	
+
 	/**
 	 * 测试str是否以prefix开头
+	 * 
 	 * @param str
 	 * @param prefix
 	 * @return boolean
@@ -446,11 +452,11 @@ public abstract class StringUtils {
 		if (str == null) {
 			return false;
 		}
-		
+
 		if (prefix == null) {
 			return false;
 		}
-		
+
 		return str.startsWith(prefix);
 	}
 
@@ -635,7 +641,7 @@ public abstract class StringUtils {
 		}
 		return str;
 	}
-	
+
 	/**
 	 * 检查source字符串是否包含target子串，大小写敏感
 	 * <blockquote><pre>
@@ -792,7 +798,7 @@ public abstract class StringUtils {
 		}
 		return true;
 	}
-	
+
 	/**
 	 * 安装字母顺序区分大小写比较
 	 * null 和 "", "  " 认为是相等的
@@ -819,7 +825,7 @@ public abstract class StringUtils {
 		}
 		return prev.compareTo(next);
 	}
-	
+
 	/**
 	 * 安装字母顺序不区分大小写比较
 	 * null 和 "", "  " 认为是相等的
@@ -903,6 +909,7 @@ public abstract class StringUtils {
 
 	/**
 	 * 移除开头结尾的所有空格、单引号、双引号
+	 * 
 	 * @param source
 	 * @return String
 	 */
@@ -911,7 +918,7 @@ public abstract class StringUtils {
 			return null;
 		}
 		source = source.trim();
-		
+
 		boolean found = false;
 		if (source.startsWith("\"") || source.startsWith("'")) {
 			source = source.substring(1, source.length());
@@ -928,14 +935,19 @@ public abstract class StringUtils {
 	}
 
 	/**
-	 * Returns a 'cleaned' representation of the specified argument. 'Cleaned' is
-	 * defined as the following: <p/> <ol> <li>If the specified <code>String</code> is
-	 * <code>null</code>, return <code>null</code></li> <li>If not <code>null</code>,
-	 * {@link String#trim() trim()} it.</li> <li>If the trimmed string is equal to the
-	 * empty String (i.e. &quot;&quot;), return <code>null</code></li> <li>If the
-	 * trimmed string is not the empty string, return the trimmed version</li>. </ol>
-	 * <p/> Therefore this method always ensures that any given string has trimmed
-	 * text, and if it doesn't, <code>null</code> is returned.
+	 * Returns a 'cleaned' representation of the specified argument. 'Cleaned' is defined as the
+	 * following:
+	 * <p/>
+	 * <ol>
+	 * <li>If the specified <code>String</code> is <code>null</code>, return <code>null</code></li>
+	 * <li>If not <code>null</code>, {@link String#trim() trim()} it.</li>
+	 * <li>If the trimmed string is equal to the empty String (i.e. &quot;&quot;), return
+	 * <code>null</code></li>
+	 * <li>If the trimmed string is not the empty string, return the trimmed version</li>.
+	 * </ol>
+	 * <p/>
+	 * Therefore this method always ensures that any given string has trimmed text, and if it
+	 * doesn't, <code>null</code> is returned.
 	 *
 	 * @param in the input String to clean.
 	 * @return a populated-but-trimmed String or <code>null</code> otherwise
@@ -1029,9 +1041,14 @@ public abstract class StringUtils {
 	public static String toString(byte[] bytes, Charset charset) {
 		return new String(bytes, charset);
 	}
-	
+
+	public static String toString(Object value) {
+		return value == null ? null : value.toString();
+	}
+
 	/**
 	 * 获取最后N个字符
+	 * 
 	 * @param source
 	 * @param n
 	 * @return String
@@ -1043,35 +1060,36 @@ public abstract class StringUtils {
 		return source.substring(source.length() - n);
 	}
 
-    /**
-     * <p>Returns either the passed in String, or if the String is
-     * {@code null}, the value of {@code defaultStr}.</p>
-     *
-     * <pre>
-     * StringUtils.defaultString(null, "NULL")  = "NULL"
-     * StringUtils.defaultString("", "NULL")    = ""
-     * StringUtils.defaultString("bat", "NULL") = "bat"
-     * </pre>
-     *
-     * @see ObjectUtils#toString(Object,String)
-     * @see String#valueOf(Object)
-     * @param str  the String to check, may be null
-     * @param defaultStr  the default String to return
-     *  if the input is {@code null}, may be null
-     * @return the passed in String, or the default if it was {@code null}
-     */
-    public static String defaultString(final String str, final String defaultStr) {
-        return str == null ? defaultStr : str;
-    }
-    
-    public static String format(final String template, final Long value) {
+	/**
+	 * <p>
+	 * Returns either the passed in String, or if the String is {@code null}, the value of
+	 * {@code defaultStr}.
+	 * </p>
+	 *
+	 * <pre>
+	 * StringUtils.defaultString(null, "NULL")  = "NULL"
+	 * StringUtils.defaultString("", "NULL")    = ""
+	 * StringUtils.defaultString("bat", "NULL") = "bat"
+	 * </pre>
+	 *
+	 * @see ObjectUtils#toString(Object,String)
+	 * @see String#valueOf(Object)
+	 * @param str        the String to check, may be null
+	 * @param defaultStr the default String to return if the input is {@code null}, may be null
+	 * @return the passed in String, or the default if it was {@code null}
+	 */
+	public static String defaultString(final String str, final String defaultStr) {
+		return str == null ? defaultStr : str;
+	}
+
+	public static String format(final String template, final Long value) {
 		String replacement = (value == null ? "" : value.toString());
 		return MessageFormat.format(template, replacement);
 	}
-    
-    public static String format(final String template, final Object... values) {
-    	Object[] replacements = new Object[values.length];
-    	for (int i = 0; i < values.length; i++) {
+
+	public static String format(final String template, final Object... values) {
+		Object[] replacements = new Object[values.length];
+		for (int i = 0; i < values.length; i++) {
 			Object value = values[i];
 			if (value instanceof Long) {
 				replacements[i] = (value == null ? "" : value.toString());
@@ -1079,6 +1097,6 @@ public abstract class StringUtils {
 				replacements[i] = value;
 			}
 		}
-    	return MessageFormat.format(template, replacements);
-    }
+		return MessageFormat.format(template, replacements);
+	}
 }

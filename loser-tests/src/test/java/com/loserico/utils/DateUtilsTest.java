@@ -92,5 +92,13 @@ public class DateUtilsTest {
 		localDate = DateUtils.toLocalDate("2018/07/11");
 		System.out.println(localDate);
 	}
+	
+	@Test
+	public void testToLocalDateTime() {
+		LocalDateTime localDateTime = DateUtils.toLocalDateTime("2017/11/15 12:20:10");
+		LocalDateTime localDateTime2 = DateUtils.toLocalDateTime("2017/11/15 2:20:10");
+		System.out.println(localDateTime);
+		System.out.println(localDateTime2);
+	}
 
 }

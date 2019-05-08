@@ -40,7 +40,11 @@ public class LongPredicate extends AbstractPredicate {
 			predicate = criteriaBuilder.ge(path, propertyValue);
 			break;
 		case EQ:
-			predicate = criteriaBuilder.equal(path, propertyValue);
+			if (propertyValue != null) {
+				predicate = criteriaBuilder.equal(path, propertyValue);
+			} else {
+				predicate = criteriaBuilder.isNotNull(path);
+			}
 			break;
 		case LT:
 			predicate = criteriaBuilder.lessThan(path, propertyValue);
@@ -49,7 +53,11 @@ public class LongPredicate extends AbstractPredicate {
 			predicate = criteriaBuilder.lessThanOrEqualTo(path, propertyValue);
 			break;
 		case NOTEQ:
-			predicate = criteriaBuilder.notEqual(path, propertyValue);
+			if (propertyValue != null) {
+				predicate = criteriaBuilder.notEqual(path, propertyValue);
+			} else {
+				predicate = criteriaBuilder.isNotNull(path);
+			}
 			break;
 		}
 		return predicate;

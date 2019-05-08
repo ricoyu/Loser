@@ -51,7 +51,11 @@ public class LocalDatePredicate extends AbstractDatePredicate {
 			predicate = criteriaBuilder.between(root.get(getPropertyName()), begin, end);
 			break;
 		case EXACT:
-			predicate = criteriaBuilder.equal(root.get(getPropertyName()), begin);
+			if (begin != null) {
+				predicate = criteriaBuilder.equal(root.get(getPropertyName()), begin);
+			} else {
+				predicate = criteriaBuilder.isNull(root.get(getPropertyName()));
+			}
 			break;
 		case EARLIER_THAN:
 			predicate = criteriaBuilder.lessThan(root.get(getPropertyName()), begin);
