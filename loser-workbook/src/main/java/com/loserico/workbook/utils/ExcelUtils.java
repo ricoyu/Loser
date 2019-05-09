@@ -26,6 +26,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -176,6 +177,22 @@ public class ExcelUtils {
 		} catch (IOException e) {
 			logger.error("关闭Workbook失败", e);
 		}
+	}
+	
+	/**
+	 * 返回指定名字的Sheet, 如果该sheetName不存在, 返回第0个sheet页
+	 * @param workbook
+	 * @param sheetName
+	 * @return Sheet
+	 */
+	public static Sheet getSheet(Workbook workbook, String sheetName) {
+		Objects.requireNonNull(workbook, "Workbook 对象不能为null");
+		Objects.requireNonNull(sheetName, "sheetName不能为null");
+		Sheet sheet = workbook.getSheet(sheetName);
+		if (sheet == null) {
+			return workbook.getSheetAt(0);
+		}
+		return sheet;
 	}
 
 	/**
@@ -929,6 +946,10 @@ public class ExcelUtils {
 	public static Double toDouble(Object value) {
 		if (value == null) {
 			return null;
+		}
+		
+		if (value instanceof Double) {
+			return (Double)value;
 		}
 
 		if (value instanceof Long) {

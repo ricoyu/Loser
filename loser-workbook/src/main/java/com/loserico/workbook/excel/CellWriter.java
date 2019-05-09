@@ -31,7 +31,7 @@ public class CellWriter {
 		Cell cell = row.createCell(cellnum);
 		if (varInfo.getVarType() == VarInfo.NUM) {
 			if(varInfo.getPrecision() != null) {
-				cell.setCellValue(MathUtils.format(ExcelUtils.toDouble(value, varInfo.isDisplayNegative()), varInfo.getPrecision()));
+				cell.setCellValue(MathUtils.formatDouble(ExcelUtils.toDouble(value, varInfo.isDisplayNegative()), varInfo.getPrecision()));
 			} else {
 				cell.setCellValue(ExcelUtils.toDouble(value));
 			}

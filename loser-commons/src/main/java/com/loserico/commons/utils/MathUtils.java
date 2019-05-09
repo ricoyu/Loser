@@ -436,6 +436,34 @@ public class MathUtils {
 		return Double.parseDouble(df.format(value));
 	}
 
+	/**
+	 * 为Double类型四舍五入保留小数点后precision位
+	 * 
+	 * @param v
+	 * @param precision
+	 * @return Double
+	 */
+	public static Double formatDouble(Double v, int precision) {
+		if (v == null) {
+			return null;
+		}
+		if (precision < 0) {
+			throw new IllegalArgumentException("precision不能为负数");
+		}
+		BigDecimal b = new BigDecimal(v);
+		BigDecimal one = new BigDecimal("1");
+		double value = b.divide(one, precision, BigDecimal.ROUND_HALF_UP).doubleValue();
+		StringBuilder format = new StringBuilder("0");
+		if (precision > 0) {
+			format.append(".");
+			for (int i = 0; i < precision; i++) {
+				format.append("0");
+			}
+		}
+		DecimalFormat df = new DecimalFormat(format.toString());
+		return Double.parseDouble(df.format(value));
+	}
+
 	public static String format(Double v, int precision) {
 		if (v == null) {
 			return null;
@@ -456,7 +484,7 @@ public class MathUtils {
 		DecimalFormat df = new DecimalFormat(format.toString());
 		return df.format(value);
 	}
-	
+
 	/**
 	 * 四舍五入保留小数点后precision位
 	 * 
@@ -661,6 +689,46 @@ public class MathUtils {
 			}
 			return null;
 		}
+	}
+
+	public static Double toDouble(Object value) {
+		if (value == null) {
+			return null;
+		}
+		
+		if (value instanceof Double) {
+			return (Double)value;
+		}
+
+		if (value instanceof Long) {
+			return ((Long) value).doubleValue();
+		}
+
+		if (value instanceof BigDecimal) {
+			return ((BigDecimal) value).doubleValue();
+		}
+
+		if (value instanceof Integer) {
+			return ((Integer) value).doubleValue();
+		}
+
+		if (value instanceof String) {
+			try {
+				return Double.parseDouble((String) value);
+			} catch (NumberFormatException e) {
+				logger.error("msg", e);
+			}
+		}
+
+		return null;
+	}
+
+	public static Double toDouble(Object value, boolean toNegative) {
+		Double v = toDouble(value);
+		if (toNegative && value != null) {
+			return 0 - v;
+		}
+		return v;
 	}
 
 	public static String toString(Long value) {
