@@ -1,9 +1,9 @@
 package com.loserico.workbook.utils;
 
 import static com.loserico.io.utils.IOUtils.GBK;
-import static com.loserico.workbook.excel.VarInfo.DT;
-import static com.loserico.workbook.excel.VarInfo.NUM;
-import static com.loserico.workbook.excel.VarInfo.STR;
+import static com.loserico.workbook.marshal.VarInfo.DT;
+import static com.loserico.workbook.marshal.VarInfo.NUM;
+import static com.loserico.workbook.marshal.VarInfo.STR;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static java.text.MessageFormat.format;
 import static java.util.Arrays.asList;
@@ -48,15 +48,15 @@ import org.springframework.web.multipart.MultipartFile;
 import com.loserico.commons.utils.DateUtils;
 import com.loserico.commons.utils.StringUtils;
 import com.loserico.io.utils.IOUtils;
-import com.loserico.workbook.excel.CellWriter;
-import com.loserico.workbook.excel.VarInfo;
-import com.loserico.workbook.excel.exception.ExcelOutputStreamWriteException;
-import com.loserico.workbook.excel.exception.InvalidVarTemplateException;
-import com.loserico.workbook.excel.exception.SheetNotExistException;
-import com.loserico.workbook.excel.exception.WorkbookCreationException;
 import com.loserico.workbook.exception.CellNotFoundException;
+import com.loserico.workbook.exception.ExcelOutputStreamWriteException;
+import com.loserico.workbook.exception.InvalidVarTemplateException;
 import com.loserico.workbook.exception.RowNotFoundException;
+import com.loserico.workbook.exception.SheetNotExistException;
 import com.loserico.workbook.exception.UnrecognizedWorkbookException;
+import com.loserico.workbook.exception.WorkbookCreationException;
+import com.loserico.workbook.marshal.CellWriter;
+import com.loserico.workbook.marshal.VarInfo;
 
 /**
  * 读写excel
@@ -178,9 +178,10 @@ public class ExcelUtils {
 			logger.error("关闭Workbook失败", e);
 		}
 	}
-	
+
 	/**
 	 * 返回指定名字的Sheet, 如果该sheetName不存在, 返回第0个sheet页
+	 * 
 	 * @param workbook
 	 * @param sheetName
 	 * @return Sheet
@@ -257,7 +258,7 @@ public class ExcelUtils {
 	public static Path write2Excel(String template, String sheetName, List<?> pojos) {
 		return write2Excel(template, sheetName, null, pojos);
 	}
-	
+
 	/**
 	 * 写入到指定sheetName的Sheet页面, sheetName不存在则写入到Sheet1
 	 * <br/>
@@ -278,7 +279,6 @@ public class ExcelUtils {
 		IOUtils.copy(filePath, realPath, REPLACE_EXISTING);
 		return realPath;
 	}
-
 
 	/**
 	 * 写入到指定sheetName的Sheet页面, sheetName不存在则写入到Sheet1
@@ -306,7 +306,8 @@ public class ExcelUtils {
 	 * @param pojos
 	 * @return
 	 */
-	public static Path write2Excel(String template, String sheetName, String targetFileName, List<?> pojos, String targetDir) {
+	public static Path write2Excel(String template, String sheetName, String targetFileName, List<?> pojos,
+			String targetDir) {
 		Path newFile = IOUtils.fileCopy(template);
 		Path targetDirPath = Paths.get(targetDir);
 		Path filePath = doWrite2Excel(newFile, sheetName, targetFileName, pojos);
@@ -317,7 +318,7 @@ public class ExcelUtils {
 		IOUtils.copy(filePath, realPath, REPLACE_EXISTING);
 		return realPath;
 	}
-	
+
 	/**
 	 * 模版的第一行是标题 第二行是变量占位符 第三行用于设置格式（style）
 	 * 
@@ -328,7 +329,7 @@ public class ExcelUtils {
 	public static Path write2Excel(Path template, String sheetName, List<?> pojos) {
 		return write2Excel(template, sheetName, null, pojos);
 	}
-	
+
 	/**
 	 * 模版的第一行是标题 第二行是变量占位符 第三行用于设置格式（style）
 	 * 
@@ -356,8 +357,8 @@ public class ExcelUtils {
 	 */
 	public static Path write2Excel(Path template, int sheetIndex, List<?> pojos) {
 		return write2Excel(template, sheetIndex, null, pojos);
-	}	
-	
+	}
+
 	/**
 	 * 写Excel到指定的目录下, 文件名前缀是targetFileName, 后面带上随机字符串
 	 * 
@@ -426,7 +427,7 @@ public class ExcelUtils {
 		Path newFile = IOUtils.fileCopy(template);
 		return doWrite2Excel(newFile, sheetIndex, targetFileName, pojos);
 	}
-	
+
 	/**
 	 * 模版的第一行是标题 第二行是变量占位符 第三行用于设置格式（style）
 	 * 
@@ -436,10 +437,11 @@ public class ExcelUtils {
 	 * @param pojos
 	 * @return
 	 */
-	public static Path write2Excel(Path template, int sheetIndex, String targetFileName, List<?> pojos, Path targetDir) {
+	public static Path write2Excel(Path template, int sheetIndex, String targetFileName, List<?> pojos,
+			Path targetDir) {
 		Path newFile = IOUtils.fileCopy(template);
 		Path filePath = doWrite2Excel(newFile, sheetIndex, targetFileName, pojos);
-		
+
 		if (!targetDir.toFile().exists()) {
 			targetDir.toFile().mkdirs();
 		}
@@ -505,7 +507,8 @@ public class ExcelUtils {
 		return doWrite2Excel(workbook, sheet, targetFileName, extension, pojos);
 	}
 
-	private static Path doWrite2Excel(Workbook workbook, Sheet sheet, String targetFileName, String extension, List<?> pojos) {
+	private static Path doWrite2Excel(Workbook workbook, Sheet sheet, String targetFileName, String extension,
+			List<?> pojos) {
 		requireNonNull(workbook);
 		requireNonNull(sheet);
 
@@ -732,7 +735,8 @@ public class ExcelUtils {
 			return null;
 		}
 
-		List<Pattern> patterns = asList(dateTimePattern, dateTimeShortPattern1, datePattern1, precisionNumberPlaceholderPattern,
+		List<Pattern> patterns = asList(dateTimePattern, dateTimeShortPattern1, datePattern1,
+				precisionNumberPlaceholderPattern,
 				placeholderPattern);
 
 		// 找到第一个匹配的模式
@@ -931,7 +935,13 @@ public class ExcelUtils {
 					double value = cell.getNumericCellValue();
 					return new BigDecimal(value);
 				}
-				String value = StringUtils.trimQuote(cell.getStringCellValue()).replaceAll(",", "");
+				String value = StringUtils.trimQuote(cell.getStringCellValue());
+				if (value == null || value.trim().equals("")) {
+					return null;
+				}
+				value = value.replaceAll(",", "")
+						.replaceAll("-", "")
+						.replaceAll("_", "");
 				if (isNotBlank(value)) {
 					return new BigDecimal(value);
 				}
@@ -947,9 +957,9 @@ public class ExcelUtils {
 		if (value == null) {
 			return null;
 		}
-		
+
 		if (value instanceof Double) {
-			return (Double)value;
+			return (Double) value;
 		}
 
 		if (value instanceof Long) {

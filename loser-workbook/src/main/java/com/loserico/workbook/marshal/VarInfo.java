@@ -1,4 +1,4 @@
-package com.loserico.workbook.excel;
+package com.loserico.workbook.marshal;
 
 public class VarInfo {
 

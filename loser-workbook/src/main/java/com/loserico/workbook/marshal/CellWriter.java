@@ -1,4 +1,4 @@
-package com.loserico.workbook.excel;
+package com.loserico.workbook.marshal;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;

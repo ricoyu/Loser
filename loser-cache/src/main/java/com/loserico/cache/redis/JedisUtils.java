@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -78,16 +79,22 @@ import redis.clients.util.Pool;
 public final class JedisUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(JedisUtils.class);
-	
+
 	public static final String STATUS_SUCCESS = "OK";
-	
+
 	private static final String NON_BLOCKING_LOCK_PREDIX = "$lock:";
 	private static final String NON_BLOCKING_LOCK_SUFFIX = ":nblk$";
 
 	private static volatile Pool<Jedis> pool = null;
 
+	/**
+	 * 默认读取classpath下redis.properties文件
+	 */
 	private static final PropertyReader propertyReader = new PropertyReader("redis");
 
+	/**
+	 * 用户缓存lua脚本的sha
+	 */
 	private static final ConcurrentHashMap<String, String> shaHashs = new ConcurrentHashMap<>();
 
 	static {
@@ -102,16 +109,19 @@ public final class JedisUtils {
 	}
 
 	/**
-	 * 返回Jedis原生实例 用完记得调用jedis.close() 归还resource
+	 * 返回Jedis原生实例 
+	 * 
+	 * 用完记得调用jedis.close() 归还resource
 	 * 
 	 * @return Jedis
+	 * @on
 	 */
 	private static Jedis jedis() {
 		return pool.getResource();
 	}
 
 	/**
-	 * key/value 都是字符串版本
+	 * key/value 都是字符串的版本
 	 * 
 	 * @param key
 	 * @param value
@@ -122,40 +132,52 @@ public final class JedisUtils {
 	}
 
 	/**
-	 * value不是String类型的情况, 如果value实现了Serializable接口, 那么用Java的序列化机制,
+	 * value不是String类型的情况
+	 * 
+	 * 如果value实现了Serializable接口, 那么用Java的序列化机制
 	 * 否则使用Jackson序列化成byte[]
 	 * 
 	 * @param key
 	 * @param value
-	 * @return String
+	 * @return boolean 是否set成功
+	 * @on
 	 */
 	public static boolean set(String key, Object value) {
 		return set(toBytes(key), toBytes(value));
 	}
 
+	/**
+	 * value是List类型, 通过Jackson序列化成json串
+	 * 
+	 * @param key
+	 * @param values
+	 * @return boolean 是否set成功
+	 */
 	public static boolean set(String key, List<?> values) {
 		return set(key, toJson(values));
 	}
 
 	/**
-	 * key不是String类型的情况, 如果key实现了Serializable接口, 那么用Java的序列化机制,
+	 * key不是String类型的情况
+	 * 
+	 * 如果key实现了Serializable接口, 那么用Java的序列化机制
 	 * 否则使用Jackson序列化成byte[]
 	 * 
 	 * @param key
 	 * @param value
-	 * @return String
+	 * @return boolean 是否set成功
+	 * @on
 	 */
 	public static boolean set(Object key, String value) {
 		return set(toBytes(key), toBytes(value));
 	}
 
 	/**
-	 * key/value都不是String类型的情况, 如果key/value实现了Serializable接口, 那么用Java的序列化机制,
-	 * 否则使用Jackson序列化成byte[]
+	 * key/value都不是String类型的情况, 如果key/value实现了Serializable接口, 那么用Java的序列化机制, 否则使用Jackson序列化成byte[]
 	 * 
 	 * @param key
 	 * @param value
-	 * @return
+	 * @return boolean 是否set成功
 	 */
 	public static boolean set(Object key, Object value) {
 		return set(toBytes(key), toBytes(value));
@@ -173,56 +195,58 @@ public final class JedisUtils {
 		try {
 			String status = jedis.set(key, value);
 			logger.debug("set: {}", status);
-			return status.equals(STATUS_SUCCESS);
+			return STATUS_SUCCESS.equals(status);
 		} finally {
 			jedis.close();
 		}
 	}
 
 	/**
-	 * key/value 都是字符串版本,同时带过期时间
+	 * key/value 都是字符串版本, 同时带过期时间
 	 * 
 	 * @param key
 	 * @param value
 	 * @return boolean 表示是否设置成功
 	 */
 	public static boolean set(String key, String value, long expires, TimeUnit timeUnit) {
+		Objects.requireNonNull(timeUnit);
 		return set(toBytes(key), toBytes(value), toBytes(expires, timeUnit));
 	}
 
 	/**
-	 * value不是String类型的情况, 如果value实现了Serializable接口, 那么用Java的序列化机制,
-	 * 否则使用Jackson序列化成byte[]
+	 * value不是String类型的情况, 如果value实现了Serializable接口, 那么用Java的序列化机制, 否则使用Jackson序列化成byte[], 同时带过期时间
 	 * 
 	 * @param key
 	 * @param value
 	 * @return String
 	 */
 	public static boolean set(String key, Object value, long expires, TimeUnit timeUnit) {
+		Objects.requireNonNull(timeUnit);
 		return set(toBytes(key), toBytes(value), toBytes(expires, timeUnit));
 	}
 
 	/**
-	 * key不是String类型的情况, 如果key实现了Serializable接口, 那么用Java的序列化机制,
-	 * 否则使用Jackson序列化成byte[], 同时设置过期时间
+	 * key不是String类型的情况, 如果key实现了Serializable接口, 那么用Java的序列化机制, 否则使用Jackson序列化成byte[], 同时设置过期时间
 	 * 
 	 * @param key
 	 * @param value
-	 * @return boolean
+	 * @return boolean 表示是否设置成功
 	 */
 	public static boolean set(Object key, String value, long expires, TimeUnit timeUnit) {
+		Objects.requireNonNull(key);
 		return set(toBytes(key), toBytes(value), toBytes(expires, timeUnit));
 	}
 
 	/**
-	 * key/value都不是String类型的情况, 如果key/value实现了Serializable接口, 那么用Java的序列化机制,
-	 * 否则使用Jackson序列化成byte[]
+	 * key/value都不是String类型的情况, 如果key/value实现了Serializable接口, 那么用Java的序列化机制, 否则使用Jackson序列化成byte[]
 	 * 
 	 * @param key
 	 * @param value
 	 * @return
 	 */
 	public static boolean set(Object key, Object value, long expires, TimeUnit timeUnit) {
+		Objects.requireNonNull(key);
+		Objects.requireNonNull(timeUnit);
 		return set(toBytes(key), toBytes(value), toBytes(expires, timeUnit));
 	}
 
@@ -252,8 +276,6 @@ public final class JedisUtils {
 	 * 原子操作
 	 * @param key
 	 * @param value		
-	 * @param expires	过期时间
-	 * @param unit		过期单位, 毫秒、秒等
 	 * @return boolean	是否设置成功
 	 * @on
 	 */
@@ -273,6 +295,7 @@ public final class JedisUtils {
 	 * @on
 	 */
 	public static boolean setnx(String key, Object value) {
+		Objects.requireNonNull(key);
 		Jedis jedis = pool.getResource();
 		return 1L == jedis.setnx(toBytes(key), toBytes(value));
 	}
@@ -282,12 +305,11 @@ public final class JedisUtils {
 	 * 原子操作
 	 * @param key
 	 * @param value		
-	 * @param expires	过期时间
-	 * @param unit		过期单位, 毫秒、秒等
 	 * @return boolean	是否设置成功
 	 * @on
 	 */
 	public static boolean setnx(Object key, Object value) {
+		Objects.requireNonNull(key);
 		Jedis jedis = pool.getResource();
 		return 1L == jedis.setnx(toBytes(key), toBytes(value));
 	}
@@ -303,6 +325,9 @@ public final class JedisUtils {
 	 * @on
 	 */
 	public static boolean setnx(String key, Object value, long expires, TimeUnit timeUnit) {
+		Objects.requireNonNull(key);
+		Objects.requireNonNull(timeUnit);
+
 		Jedis jedis = pool.getResource();
 		try {
 			String setnxSha1 = shaHashs.computeIfAbsent("setnx.lua", x -> {
@@ -310,7 +335,7 @@ public final class JedisUtils {
 				return jedis.scriptLoad(IOUtils.readClassPathFile("/lua-scripts/setnx.lua"));
 			});
 
-			long expireInSeconds = toSeconds(expires, timeUnit);
+			long expireInSeconds = timeUnit.toSeconds(expires);
 			long result = (long) jedis.evalsha(toBytes(setnxSha1),
 					1,
 					toBytes(key),
@@ -377,7 +402,7 @@ public final class JedisUtils {
 				set(key, result, expires, timeUnit);
 				lock.unlock();
 				return result;
-			} else {// 没有获得锁就再从缓存取一遍, 取不到就拉倒
+			} else {// 没有获得锁就再从缓存取一遍, 取不到拉倒
 				return get(key, clazz);
 			}
 		}
@@ -386,8 +411,7 @@ public final class JedisUtils {
 	}
 
 	/**
-	 * key不是String类型的情况, 如果key实现了Serializable接口, 那么用Java的序列化机制,
-	 * 否则使用Jackson序列化成byte[]
+	 * key不是String类型的情况, 如果key实现了Serializable接口, 那么用Java的序列化机制, 否则使用Jackson序列化成byte[]
 	 * 
 	 * @param key
 	 * @return String
@@ -437,6 +461,7 @@ public final class JedisUtils {
 
 	/**
 	 * 获取Long类型的值, 如果这个key不存在这返回null
+	 * 
 	 * @param key
 	 * @return Long
 	 */
@@ -454,12 +479,13 @@ public final class JedisUtils {
 			}
 		}
 	}
+
 	/**
 	 * key是字符串, value是一个ArrayList, 通过Jackson序列化反序列化
 	 * 
 	 * @param key
 	 * @param clazz
-	 * @return
+	 * @return List<T>
 	 */
 	public static <T> List<T> getList(String key, Class<T> clazz) {
 		return getList(toBytes(key), clazz);
@@ -492,11 +518,14 @@ public final class JedisUtils {
 			// 成功获取锁才调supplier并回填
 			Lock lock = lock(key, 1, MINUTES);
 			if (lock.locked()) {
-				List<T> result = supplier.get();
-				set(key, result, 5, TimeUnit.MINUTES);
-				lock.unlock();
-				return result;
-			} else {// 没有获得锁就再从缓存取一遍, 取不到就拉倒
+				try {
+					List<T> result = supplier.get();
+					set(key, result, 5, MINUTES);
+					return result;
+				} finally {
+					lock.unlock();
+				}
+			} else {// 没有获得锁就再从缓存取一遍, 取不到拉倒
 				return getList(key, clazz);
 			}
 		}
@@ -510,12 +539,15 @@ public final class JedisUtils {
 	 * @param key
 	 * @param clazz
 	 * @param supplier
-	 * @return T
+	 * @return List<T>
 	 */
-	public static <T> List<T> getList(String key, Class<T> clazz, Supplier<List<T>> supplier, long expires, TimeUnit timeUnit) {
-		List<T> object = getList(key, clazz);
+	public static <T> List<T> getList(String key, Class<T> clazz, Supplier<List<T>> supplier, long expires,
+			TimeUnit timeUnit) {
+		Objects.requireNonNull(timeUnit);
+
+		List<T> list = getList(key, clazz);
 		// 没有命中则调用supplier.get()并回填缓存
-		if (object == null || object.isEmpty()) {
+		if (list == null || list.isEmpty()) {
 			/*
 			 * 成功获取锁才调supplier并回填
 			 * 这里锁的时间没关系, 因为拿到锁后执行set操作后就会解锁
@@ -523,18 +555,21 @@ public final class JedisUtils {
 			 */
 			Lock lock = lock(key, expires, timeUnit);
 			if (lock.locked()) {
-				List<T> result = supplier.get();
-				if (result != null && !result.isEmpty()) {
-					set(key, result, expires, timeUnit);
+				try {
+					List<T> result = supplier.get();
+					if (result != null && !result.isEmpty()) {
+						set(key, result, expires, timeUnit);
+					}
+					return result;
+				} finally {
+					lock.unlock();
 				}
-				lock.unlock();
-				return result;
 			} else {// 没有获得锁就再从缓存取一遍, 取不到就拉倒
 				return getList(key, clazz);
 			}
 		}
 
-		return object;
+		return list;
 	}
 
 	/**
@@ -760,7 +795,7 @@ public final class JedisUtils {
 		 * <p>
 		 * Time complexity: O(1)
 		 * @see #brpop(int, String...)
-		 * @param timeout
+		 * @param timeoutSeconds 阻塞多少秒后超时退出
 		 * @param keys
 		 * @return BLPOP returns a two-elements array via a multi bulk reply in order to return both the
 		 *         unblocking key and the popped value.
@@ -770,10 +805,10 @@ public final class JedisUtils {
 		 *         accordingly to the programming language used.
 		 * @on
 		 */
-		public static List<String> blpop(String key, int timeout) {
+		public static List<String> blpop(String key, int timeoutSeconds) {
 			Jedis jedis = pool.getResource();
 			try {
-				return jedis.blpop(timeout, key);
+				return jedis.blpop(timeoutSeconds, key);
 			} finally {
 				if (jedis != null) {
 					jedis.close();
@@ -828,7 +863,7 @@ public final class JedisUtils {
 		}
 
 		/**
-		 * 从左侧(头部)弹出一个元素,阻塞版本
+		 * 从左侧(头部)弹出一个元素, 阻塞版本
 		 * <pre>
 		 * BLPOP list1 list2 list3 
 		 * 假设 list1不存在,  list2有一个元素 a
@@ -1667,7 +1702,8 @@ public final class JedisUtils {
 								(entry) -> JedisUtils.toString(entry.getKey()),
 								(entry) -> {
 									try {
-										return JacksonUtils.objectMapper().readValue(JedisUtils.toString(entry.getValue()), javaType);
+										return JacksonUtils.objectMapper()
+												.readValue(JedisUtils.toString(entry.getValue()), javaType);
 									} catch (IOException e) {
 										logger.error("将value转成集合类型时失败", e);
 										throw new JedisValueOperationException(e);
@@ -1709,7 +1745,8 @@ public final class JedisUtils {
 								(entry) -> toObject(entry.getKey(), clazzKey),
 								(entry) -> {
 									try {
-										return JacksonUtils.objectMapper().readValue(JedisUtils.toString(entry.getValue()), javaType);
+										return JacksonUtils.objectMapper()
+												.readValue(JedisUtils.toString(entry.getValue()), javaType);
 									} catch (IOException e) {
 										logger.error("将value转成集合类型时失败", e);
 										throw new JedisValueOperationException(e);
@@ -2117,20 +2154,13 @@ public final class JedisUtils {
 		/**
 		 * 执行登录操作 返回登录成功与否, 如果同一账号已经在别处登录, 先对其执行登出, 并将之前的登录信息返回
 		 * 
-		 * @param username
-		 *            用户名
-		 * @param token
-		 *            token
-		 * @param expires
-		 *            过期时间
-		 * @param timeUnit
-		 *            单位
-		 * @param userdetails
-		 *            Spring Security的UserDetails对象
-		 * @param authorities
-		 *            Spring Security的GrantedAuthority对象
-		 * @param loginInfo
-		 *            额外的登录信息
+		 * @param username    用户名
+		 * @param token       token
+		 * @param expires     过期时间
+		 * @param timeUnit    单位
+		 * @param userdetails Spring Security的UserDetails对象
+		 * @param authorities Spring Security的GrantedAuthority对象
+		 * @param loginInfo   额外的登录信息
 		 * @return LoginResult<T>
 		 */
 		public static <T> LoginResult<T> login(String username,
@@ -2514,8 +2544,7 @@ public final class JedisUtils {
 	 * 设置过期时间及单位
 	 * 
 	 * @param key
-	 * @param unixTime
-	 *            UNIX时间戳
+	 * @param unixTime UNIX时间戳
 	 * @return boolean 是否成功设置了过期时间
 	 */
 	public static boolean expireAt(String key, long unixTime) {
@@ -2533,8 +2562,7 @@ public final class JedisUtils {
 	 * 设置过期时间及单位
 	 * 
 	 * @param key
-	 * @param unixTime
-	 *            UNIX时间戳
+	 * @param unixTime UNIX时间戳
 	 * @return boolean 是否成功设置了过期时间
 	 */
 	public static boolean expireAt(Object key, long unixTime) {
@@ -2860,11 +2888,12 @@ public final class JedisUtils {
 		String requestId = UUID.randomUUID().toString().replaceAll("-", "");
 		String lockKey = nonBlockingLockKey(key);
 		boolean success = setnx(lockKey, requestId, leaseTime, TimeUnit.SECONDS);
-		return new NonBlockingLock(key, requestId, success); //这里传原始的key
+		return new NonBlockingLock(key, requestId, success); // 这里传原始的key
 	}
 
 	/**
 	 * 对传入的原始key, 加上前缀/后缀, 组合成最终锁使用的key, 然后尝试对这个最终的key加锁
+	 * 
 	 * @param key
 	 * @param leaseTime
 	 * @param timeUnit
@@ -2874,7 +2903,7 @@ public final class JedisUtils {
 		String requestId = UUID.randomUUID().toString().replaceAll("-", "");
 		String lockKey = nonBlockingLockKey(key);
 		boolean success = setnx(lockKey, requestId, leaseTime, timeUnit);
-		return new NonBlockingLock(key, requestId, success); //这里传原始的key
+		return new NonBlockingLock(key, requestId, success); // 这里传原始的key
 	}
 
 	/**
@@ -3061,7 +3090,7 @@ public final class JedisUtils {
 	}
 
 	private static byte[] toBytes(long time, TimeUnit timeUnit) {
-		long seconds = toSeconds(time, timeUnit);
+		long seconds = timeUnit.toSeconds(time);
 		return toBytes(seconds);
 	}
 
@@ -3137,6 +3166,7 @@ public final class JedisUtils {
 
 	/**
 	 * 给传入的非阻塞分布式锁的key加上前缀和后缀
+	 * 
 	 * @param originalKey
 	 * @return
 	 */

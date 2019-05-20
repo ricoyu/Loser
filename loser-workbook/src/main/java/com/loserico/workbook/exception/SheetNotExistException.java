@@ -1,4 +1,4 @@
-package com.loserico.workbook.excel.exception;
+package com.loserico.workbook.exception;
 public class SheetNotExistException extends RuntimeException {
 
 	private static final long serialVersionUID = -4127120873449254565L;

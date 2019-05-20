@@ -1,4 +1,4 @@
-package com.loserico.workbook.excel.exception;
+package com.loserico.workbook.exception;
 public class InvalidVarTemplateException extends RuntimeException {
 
 	private static final long serialVersionUID = -1404780319518180287L;

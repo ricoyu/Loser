@@ -1,4 +1,4 @@
-package com.loserico.workbook.excel.exception;
+package com.loserico.workbook.exception;
 public class ExcelOutputStreamWriteException extends RuntimeException {
 
 	private static final long serialVersionUID = 6058228730834007347L;

@@ -1,4 +1,4 @@
-package com.loserico.workbook.excel.exception;
+package com.loserico.workbook.exception;
 
 /**
  * 创建Excel文件失败时抛出该异常
