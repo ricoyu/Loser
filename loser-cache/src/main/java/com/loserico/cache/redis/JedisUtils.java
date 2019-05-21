@@ -2096,7 +2096,7 @@ public final class JedisUtils {
 
 	/**
 	 * 基于Redis的登录/认证系统
-	 * 执行登录、登出、token过期清理与过期token通知
+	 * 执行登录, 登出, token过期清理与过期token通知
 	 * 还有单点登录下线通知
 	 * <p>
 	 * Copyright: Copyright (c) 2018-07-27 16:53
@@ -2129,7 +2129,7 @@ public final class JedisUtils {
 		public static final String AUTH_TOKEN_AUTHORITIES_HASH = "auth:token:authorities";
 
 		/**
-		 * 根据token获取loginInfo, 这是调用login时传入的额外信息, 如设备ID,IP地址等等
+		 * 根据token获取loginInfo, 这是调用login时传入的额外信息, 如设备ID, IP地址等等
 		 */
 		public static final String AUTH_TOKEN_LOGIN_INFO_HASH = "auth:token:login:info";
 
@@ -2139,20 +2139,22 @@ public final class JedisUtils {
 		public static final String AUTH_TOKEN_TTL_ZSET = "auth:token:ttl:zset";
 
 		/**
-		 * token过期后, 会publish一条消息到这个channel,  消息体是JSON格式的Map
-		 * key是过期的token,  value是LoginInfo对象 
-		 * 格式：{token:loginInfo, token:loginInfo, ...}
+		 * token过期后, 会publish一条消息到这个channel, 消息体是JSON格式的Map
+		 * key是过期的token, value是LoginInfo对象 
+		 * 格式: {token:loginInfo, token:loginInfo, ...}
 		 * @on
 		 */
 		public static final String AUTH_TOKEN_EXPIRE_CHANNEL = "auth:token:expired";
 
 		/**
 		 * 是否自动刷新token
+		 * 
+		 * 如果token快要过期了, 此时被刷新, 则表示过期时间被重置了.
 		 */
 		private static boolean autoRefresh = propertyReader.getBoolean("redis.auth.auto-refresh", true);
 
 		/**
-		 * 执行登录操作 返回登录成功与否, 如果同一账号已经在别处登录, 先对其执行登出, 并将之前的登录信息返回
+		 * 执行登录操作, 返回登录成功与否, 如果同一账号已经在别处登录, 先对其执行登出, 并将之前的登录信息返回
 		 * 
 		 * @param username    用户名
 		 * @param token       token
@@ -2162,6 +2164,7 @@ public final class JedisUtils {
 		 * @param authorities Spring Security的GrantedAuthority对象
 		 * @param loginInfo   额外的登录信息
 		 * @return LoginResult<T>
+		 * @on
 		 */
 		public static <T> LoginResult<T> login(String username,
 				String token,
@@ -2169,6 +2172,8 @@ public final class JedisUtils {
 				Object userdetails,
 				List<?> authorities,
 				T loginInfo) {
+			Objects.requireNonNull(timeUnit);
+			
 			Jedis jedis = pool.getResource();
 			try {
 				String setnxSha1 = shaHashs.computeIfAbsent("spring-security-auth.lua", x -> {
@@ -2181,10 +2186,11 @@ public final class JedisUtils {
 						toBytes("login"),
 						toBytes(username),
 						toBytes(token),
-						toBytes((expires == -1 ? expires : toSeconds(expires, timeUnit))),
+						toBytes((expires == -1 ? expires : timeUnit.toMillis(expires))),
 						toBytes(toJson(userdetails)),
 						toBytes(toJson(authorities)),
 						toBytes(loginInfo));
+				
 				String resultJson = JedisUtils.toString(result);
 				T lastLoginInfo = JsonPathUtils.readNode(resultJson, "$.lastLoginInfo");
 				boolean success = JsonPathUtils.readNode(resultJson, "$.success");
@@ -2224,9 +2230,13 @@ public final class JedisUtils {
 		}
 
 		/**
-		 * 清除过期的token 没有token过期 返回emptyMap token过期, 返回map的key是token, value是LoginInfo
+		 * 清除过期的token 
+		 * 
+		 * 没有token过期 返回emptyMap 
+		 * token过期, 返回map的key是token, value是LoginInfo
 		 * 
 		 * @return
+		 * @on
 		 */
 		public static <T> Map<String, T> clearExpired() {
 			logger.info("开始清理过期token");
@@ -2379,7 +2389,9 @@ public final class JedisUtils {
 		}
 
 		/**
-		 * Token过期后接受通知, 参数是一个Map<String, T>, T 即调用login()时传入的loginInfo
+		 * Token过期后接受通知
+		 * 
+		 * 参数是一个Map<String, T>, T 即调用login()时传入的loginInfo
 		 * 
 		 * @param consumer
 		 */
@@ -2395,12 +2407,13 @@ public final class JedisUtils {
 		 * 定期自动清理token
 		 */
 		static {
-			int period = JedisUtils.propertyReader.getInt("redis.auth.clear-expired.period", 60); // 默认1分钟执行一次
+			int period = JedisUtils.propertyReader.getInt("redis.auth.clear-expired.period", 1); // 默认1分钟执行一次
 			if (-1 != period) { // -1表示不执行清理
 				ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 				scheduledExecutorService.scheduleAtFixedRate(() -> clearExpired(),
 						1,
-						period, TimeUnit.MINUTES);
+						period, 
+						TimeUnit.MINUTES);
 			}
 		}
 	}
@@ -2760,20 +2773,17 @@ public final class JedisUtils {
 				messageListener.onMessage(channel, message);
 			}
 		};
-		try {
-			ConcurrentTemplate.execute(() -> {
-				try {
-					jedis.subscribe(jedisPubSub, chnannel);
-				} catch (JedisDataException e) {
-					logger.error("订阅出错了？", e);
+		ConcurrentTemplate.execute(() -> {
+			try {
+				jedis.subscribe(jedisPubSub, chnannel);
+			} catch (JedisDataException e) {
+				logger.error("订阅出错了？", e);
+				if (jedis != null) {
+					jedis.close();
 				}
-			});
-			return jedisPubSub;
-		} finally {
-			if (jedis != null) {
-				jedis.close();
 			}
-		}
+		});
+		return jedisPubSub;
 	}
 
 	/**
@@ -3153,10 +3163,6 @@ public final class JedisUtils {
 			return null;
 		}
 		return new Long(new String(data, UTF_8));
-	}
-
-	private static long toSeconds(long time, TimeUnit timeUnit) {
-		return timeUnit.toSeconds(time);
 	}
 
 	private static int toSeconds(int time, TimeUnit timeUnit) {

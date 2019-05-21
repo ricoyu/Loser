@@ -1,7 +1,7 @@
 package org.loser.cache;
 
 import static com.loserico.commons.jackson.JacksonUtils.toJson;
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.nio.charset.StandardCharsets.*;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.Assert.assertEquals;
 
@@ -9,13 +9,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.hash.Hashing;
 import com.loserico.cache.auth.LoginResult;
@@ -29,13 +28,11 @@ import redis.clients.jedis.JedisPoolConfig;
 
 public class JedisLuaTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(JedisLuaTest.class);
-
 	private static JedisPool pool = null;
 
 	@BeforeClass
 	public static void setup() {
-		pool = new JedisPool(new JedisPoolConfig(), "192.168.102.106", 6379, 100, "deepdata$");
+		pool = new JedisPool(new JedisPoolConfig(), "192.168.102.106", 6379, 100, "deepdata$", 12);
 	}
 
 	@AfterClass
@@ -46,6 +43,7 @@ public class JedisLuaTest {
 	@Test
 	public void testSingleNode() {
 		Jedis jedis = new Jedis("192.168.102.106", 6379);
+		jedis.select(12);
 		jedis.set("foo", "bar");
 		String value = jedis.get("foo");
 		System.out.println(value);
@@ -74,7 +72,7 @@ public class JedisLuaTest {
 		Object object = JedisUtils.eval(script);
 		System.out.println(object);
 	}
-	
+
 	@Test
 	public void testZscore() {
 		Jedis jedis = pool.getResource();
@@ -113,8 +111,8 @@ public class JedisLuaTest {
 	 * Suppose we’re building a URL-shortener. 
 	 * Each time a URL comes in we want to store it and return a unique number that can be used to access the URL later.
 	 * 
-	 * 调用形式为(逗号前面为KEYS， 后面是ARGV,参数个数不传也可以)：
-	 *  redis-cli --eval incrset.lua links:counter links:urls , http://malcolmgladwellbookgenerator.com/
+	 * 调用形式为(逗号前面为KEYS, 后面是ARGV, 参数个数不传也可以)
+	 *  redis-cli --eval incrset.lua links:counter links:urls, http://malcolmgladwellbookgenerator.com/
 	 * We’ll use a Lua script to get a unique ID from Redis using INCR and immediately store the URL in a hash that is keyed by the unique ID:
 	 * 	local link_id = redis.call("INCR", KEYS[1])
 	 * 	redis.call("HSET", KEYS[2], link_id, ARGV[1])
@@ -202,21 +200,30 @@ public class JedisLuaTest {
 	public void testLogin() {
 		String username = "ricoyu";
 		String token = "token123123";
-		long expires = 6L;
+		long expires = -1L;
 		UserDetails userDetails = new UserDetails("ricoyu", "俞雪华");
 		List<GrantedAuthority> authorities = new ArrayList<>();
 		authorities.add(new GrantedAuthority("ROLE_ADMIN"));
 		authorities.add(new GrantedAuthority("user:del"));
 		LoginInfo loginInfo = new LoginInfo("device:123123asdhjkahsdad5");
-		LoginResult<LoginInfo> loginResult = JedisUtils.AUTH.login(username, 
-				token, 
-				expires, TimeUnit.SECONDS, 
-				userDetails, 
+		LoginResult<LoginInfo> loginResult = JedisUtils.AUTH.login(username,
+				token,
+				expires, TimeUnit.MINUTES,
+				userDetails,
 				authorities,
 				loginInfo);
 		System.out.println(toJson(loginResult));
 	}
-	
+
+	public static void main(String[] args) {
+		JedisUtils.AUTH.onTokenExpire((map) -> {
+			for (Entry<String, Object> entry : map.entrySet()) {
+				System.out.println(entry.getKey());
+				System.out.println(entry.getValue());
+			}
+		});
+	}
+
 	@Test
 	public void testAuth() {
 		String username = JedisUtils.AUTH.auth("token123123");
@@ -225,9 +232,9 @@ public class JedisLuaTest {
 
 	@Test
 	public void testClearExpired() {
-		Object result = JedisUtils.AUTH.clearExpired(); 
+		Object result = JedisUtils.AUTH.clearExpired();
 		System.out.println(result);
-		 
+
 	}
 
 	@Test
@@ -238,18 +245,27 @@ public class JedisLuaTest {
 				"token123123");
 		System.out.println(result);
 	}
-	
-	public static void main(String[] args) {
-		/*JedisUtils.subscribe(JedisUtils.AUTH.AUTH_TOKEN_EXPIRE_CHANNEL, (channel, message) -> {
+
+	@Test
+	public void testCompareWithMinusOne() {
+		String script = IOUtils.readClassPathFile("testCompare.lua");
+		Jedis jedis = pool.getResource();
+		String sha1 = jedis.scriptLoad(script);
+		byte[] result = (byte[]) jedis.evalsha(sha1.getBytes(UTF_8), 0, String.valueOf(-1).getBytes(UTF_8));
+		System.out.println(new String(result));
+	}
+
+	/*public static void main(String[] args) {
+		JedisUtils.subscribe(JedisUtils.AUTH.AUTH_TOKEN_EXPIRE_CHANNEL, (channel, message) -> {
 			System.out.println("Channel: " + channel + " message: " + message);
-		});*/
+		});
 		JedisUtils.AUTH.onTokenExpire((expiredMap) -> {
 			for (String token : expiredMap.keySet()) {
 				System.out.println("Token: " + token +" 已过期");
 				System.out.println("额外的登录信息: " + toJson(expiredMap.get(token)));
 			}
 		});
-	}
+	}*/
 	public static class UserDetails {
 		private String username;
 
