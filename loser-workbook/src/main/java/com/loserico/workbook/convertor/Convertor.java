@@ -18,5 +18,5 @@ public interface Convertor<S, T> {
 	 * @param sourceType
 	 * @return
 	 */
-	T convert(S sourceType);
+	T convert(S source);
 }

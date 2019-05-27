@@ -854,7 +854,7 @@ public class ExcelUtils {
 				 * 遇到Excel某列值是如上, 获取到的CellType却是Numeric, 但是拿到的值是类似65333这样的
 				 * 所以现在改成先拿DateCellValue, 拿不到再走Numberic
 				 */
-				if (cellTypeEnum == CellType.NUMERIC) {
+				if (cellTypeEnum == CellType.NUMERIC || cell.getCellTypeEnum() == CellType.FORMULA) {
 					String dateStr = String.valueOf((long) cell.getNumericCellValue());
 					return DateUtils.toLocalDate(dateStr);
 				}

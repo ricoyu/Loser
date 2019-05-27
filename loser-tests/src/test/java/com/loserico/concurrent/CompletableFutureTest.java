@@ -22,12 +22,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * CompletableFuture is still a relatively fresh concept, despite being introduced
- * almost two years ago (!) in March 2014 with Java 8.
+ * CompletableFuture is still a relatively fresh concept, despite being introduced almost two
+ * years ago (!) in March 2014 with Java 8.
  * 
- * But maybe it's good that this class is not so well known since it can be easily
- * abused, especially with regards to threads and thread pools that are involved along
- * the way. This article aims to describe how threads are used with CompletableFuture.
+ * But maybe it's good that this class is not so well known since it can be easily abused,
+ * especially with regards to threads and thread pools that are involved along the way. This
+ * article aims to describe how threads are used with CompletableFuture.
  * 
  * @author Loser
  * 
@@ -43,16 +43,14 @@ public class CompletableFutureTest {
 	ExecutorService pool2 = Executors.newFixedThreadPool(10);
 
 	/**
-	 * This is the fundamental part of the API. There is a convenient supplyAsync()
-	 * method that is similar to ExecutorService.submit(), but returning
-	 * CompletableFuture
+	 * This is the fundamental part of the API. There is a convenient supplyAsync() method that is
+	 * similar to ExecutorService.submit(), but returning CompletableFuture
 	 * 
-	 * The problem is, supplyAsync() by default uses ForkJoinPool.commonPool(), thread
-	 * pool shared between all CompletableFutures, all parallel streams and all
-	 * applications deployed on the same JVM (if you are unfortunate to still use
-	 * application server with many deployed artifacts). This hard-coded,
-	 * unconfigurable thread pool is completely outside of our control, hard to
-	 * monitor and scale. Therefore you should always specify your own Executor
+	 * The problem is, supplyAsync() by default uses ForkJoinPool.commonPool(), thread pool shared
+	 * between all CompletableFutures, all parallel streams and all applications deployed on the
+	 * same JVM (if you are unfortunate to still use application server with many deployed
+	 * artifacts). This hard-coded, unconfigurable thread pool is completely outside of our control,
+	 * hard to monitor and scale. Therefore you should always specify your own Executor
 	 */
 	@Test
 	public void testCompletableFuture() {
@@ -73,14 +71,15 @@ public class CompletableFutureTest {
 		}
 	}
 
-	/*
-	 * The problem is, supplyAsync() by default uses ForkJoinPool.commonPool(), thread
-	 * pool shared between all CompletableFutures, all parallel streams and all
-	 * applications deployed on the same JVM (if you are unfortunate to still use
-	 * application server with many deployed artifacts). This hard-coded,
-	 * unconfigurable thread pool is completely outside of our control, hard to
-	 * monitor and scale. Therefore you should always specify your own Executor, like
-	 * here (and have a look at my few tips how to create one):
+	/**
+	 * The problem is, supplyAsync() by default uses ForkJoinPool.commonPool(), thread pool shared
+	 * between all CompletableFutures, all parallel streams and all applications deployed on the
+	 * same JVM (if you are unfortunate to still use application server with many deployed
+	 * artifacts). This hard-coded, unconfigurable thread pool is completely outside of our control,
+	 * hard to monitor and scale.
+	 * 
+	 * Therefore you should always specify your own Executor, like here (and have a look at my few
+	 * tips how to create one):
 	 */
 	@Test
 	public void testCompletableFutureWithExecutorService() {
@@ -316,10 +315,9 @@ public class CompletableFutureTest {
 	}
 
 	/**
-	 * The most generic way to process the result of a computation is to feed it to a
-	 * function. The thenApply method does exactly that: accepts a Function instance,
-	 * uses it to process the result and returns a Future that holds a value returned
-	 * by a function:
+	 * The most generic way to process the result of a computation is to feed it to a function. The
+	 * thenApply method does exactly that: accepts a Function instance, uses it to process the
+	 * result and returns a Future that holds a value returned by a function:
 	 * 
 	 * @throws InterruptedException
 	 * @throws ExecutionException
@@ -338,13 +336,12 @@ public class CompletableFutureTest {
 	}
 
 	/**
-	 * If you don’t need to return a value down the Future chain, you can use an
-	 * instance of the Consumer functional interface. Its single method takes a
-	 * parameter and returns void.
+	 * If you don’t need to return a value down the Future chain, you can use an instance of the
+	 * Consumer functional interface. Its single method takes a parameter and returns void.
 	 * 
-	 * There’s a method for this use case in the CompletableFuture — the thenAccept
-	 * method receives a Consumer and passes it the result of the computation. The
-	 * final future.get() call returns an instance of the Void type.
+	 * There’s a method for this use case in the CompletableFuture — the thenAccept method receives
+	 * a Consumer and passes it the result of the computation. The final future.get() call returns
+	 * an instance of the Void type.
 	 */
 	@Test
 	public void testThenApply() {
@@ -399,10 +396,9 @@ public class CompletableFutureTest {
 	}
 
 	/**
-	 * if you neither need the value of the computation nor want to return some value
-	 * at the end of the chain, then you can pass a Runnable lambda to the thenRun
-	 * method. In the following example, after the future.get() method is called, we
-	 * simply print a line in the console:
+	 * if you neither need the value of the computation nor want to return some value at the end of
+	 * the chain, then you can pass a Runnable lambda to the thenRun method. In the following
+	 * example, after the future.get() method is called, we simply print a line in the console:
 	 */
 	@Test
 	public void testThenRun() {

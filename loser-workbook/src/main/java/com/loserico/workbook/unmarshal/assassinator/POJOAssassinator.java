@@ -1,0 +1,44 @@
+package com.loserico.workbook.unmarshal.assassinator;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+
+import com.loserico.workbook.unmarshal.command.CellCommand;
+
+import lombok.Data;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 负责从Sheet的Row中读取正确的Cell, 并将Cell的值写入POJO的字段里面
+ * <p>
+ * Copyright: Copyright (c) 2019-05-23 15:08
+ * <p>
+ * Company: Sexy Uncle Inc.
+ * <p>
+ * @author Rico Yu  ricoyu520@gmail.com
+ * @version 1.0
+ * @on
+ */
+@Slf4j
+@Data
+public class POJOAssassinator {
+
+	private CellCommand cellCommand;
+
+	private int cellIndex = -1; // 0 based
+
+	private String columnName = null; // 该列的名字
+	
+	/**
+	 * 如果columnName指定的名字在Excel的标题中找不到对应的列
+	 * 那么取fallbackName来匹配Excel的标题
+	 */
+	private String fallbackName = null;
+	
+	public void assassinate(Row row, Object pojo) {
+		Cell cell = row.getCell(cellIndex);
+		cellCommand.invoke(cell, pojo);
+	}
+
+}

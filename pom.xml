@@ -26,6 +26,7 @@
 		<module>loser-bigdata</module>
 		<module>loser-zk</module>
 		<module>loser-kafka</module>
+		<module>loser-concurrent</module>
 	</modules>
 
 	<properties>

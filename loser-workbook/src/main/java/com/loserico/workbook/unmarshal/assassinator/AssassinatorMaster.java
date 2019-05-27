@@ -1,0 +1,193 @@
+package com.loserico.workbook.unmarshal.assassinator;
+
+import static java.util.stream.Collectors.toList;
+
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+
+import com.loserico.commons.utils.StringUtils;
+import com.loserico.workbook.exception.AssassinationTrainFailedException;
+import com.loserico.workbook.exception.RowNotFoundException;
+import com.loserico.workbook.exception.SheetNotExistException;
+import com.loserico.workbook.utils.ExcelUtils;
+
+import lombok.Data;
+
+/**
+ * Assassinator的师傅, 负责将某个POJOAssassinator与Sheet中的某列对应起来
+ * <p>
+ * Copyright: Copyright (c) 2019-05-23 16:04
+ * <p>
+ * Company: Sexy Uncle Inc.
+ * <p>
+ * @author Rico Yu  ricoyu520@gmail.com
+ * @version 1.0
+ * @on
+ */
+public final class AssassinatorMaster {
+
+	/**
+	 * Excel中标题栏的行号, 默认0
+	 */
+	private int titleRowIndex = 0;
+
+	/**
+	 * 要读取的sheet页的名字
+	 */
+	private String sheetName;
+
+	private AssassinatorMaster(Builder builder) {
+		this.titleRowIndex = builder.titleRowIndex;
+		this.sheetName = builder.sheetName;
+	}
+
+	public static final class Builder {
+
+		private Builder() {
+		}
+
+		/**
+		 * Excel中标题栏的行号, 默认0
+		 */
+		private int titleRowIndex = -1;
+
+		/**
+		 * 要读取的sheet页的名字
+		 */
+		private String sheetName;
+
+		public Builder titleRowIndex(int titleRowIndex) {
+			this.titleRowIndex = titleRowIndex;
+			return this;
+		}
+
+		public Builder sheetName(String sheetName) {
+			this.sheetName = sheetName;
+			return this;
+		}
+
+		public AssassinatorMaster build() {
+			return new AssassinatorMaster(this);
+		}
+	}
+
+	public static Builder builder() {
+		return new Builder();
+	}
+
+	/**
+	 * 目的是为每个POJOAssassinator在workbook中找到一个对应的列, 并设置该列的index到POJOAssassinator
+	 * 
+	 * @param assassinators
+	 * @param workbook
+	 * @return 标题行的行号, -1表示没有找到标题行
+	 */
+	public int train(List<POJOAssassinator> assassinators, Workbook workbook) {
+		/*
+		 * 如果所有POJOAssassinator的cellIndex都不是-1
+		 * 表示每个POJOAssassinator都找到了自己要刺杀的是Sheet的哪一列, 所以不需要再训练了
+		 */
+		long count = assassinators.stream().filter(a -> a.getCellIndex() == -1).count();
+		if (count == 0) {
+			return -1;
+		}
+
+		Sheet sheet = ExcelUtils.getSheet(workbook, sheetName);
+		if (sheet == null) {
+			throw new SheetNotExistException("No sheet for name[" + sheetName + "]");
+		}
+
+		Row titleRow = null; // 先要确定哪一行是标题行
+		int titleRowIndex = -1;
+		// 表示我显式指定了哪一行是标题行
+		if (this.titleRowIndex != -1) {
+			titleRow = sheet.getRow(titleRowIndex);
+			titleRowIndex = this.titleRowIndex;
+		} else {
+			/*
+			 * 如果没有显式指定标题行, 那么进入自动寻找标题行模式
+			 * 查找逻辑: 从第0行开始依次查找, 第0列值不为空的即认为是标题所在行
+			 */
+			Iterator<Row> iterator = sheet.rowIterator();
+			while (iterator.hasNext()) {
+				titleRow = (Row) iterator.next();
+				String title = titleValue(titleRow.getCell(0));
+				if (title != null && !"".equals(title)) {
+					titleRowIndex = titleRow.getRowNum();
+					break;
+				} 
+			}
+		}
+
+		if (titleRowIndex == -1) {
+			throw new RowNotFoundException("找不到标题行");
+		}
+
+		/*
+		 * 从这一行开始, 第0列是有值的, 那么认为这行就是标题行
+		 * 从这行的第0列开始一致到最后一列, 取每一列的字符串值 title, 
+		 * title先和POJOAssassinator.columnName比较, 相同则把当前列的index设置到POJOAssassinator.cellIndex上
+		 * 如果不相同并且POJOAssassinator.fallbackName != null, 那么title和fallbackName比较, 相同则设置cellIndex
+		 */
+		int beginIndex = titleRow.getFirstCellNum();
+		int lastColumnIndex = titleRow.getLastCellNum();
+		for (int index = beginIndex; index <= lastColumnIndex; index++) {
+			Cell cell = titleRow.getCell(index);
+			String title = titleValue(cell);
+
+			/*
+			 * 这一列没有值的话就认为中间空了一列, 继续
+			 */
+			if (title == null || "".equals(title)) {
+				continue;
+			}
+
+			for (POJOAssassinator assassinator : assassinators) {
+				/*
+				 * cellIndex != -1 有两种可能 
+				 * @Col(index = 2) 在注解里已经显式指定了这个字段对应Excel中的哪一列
+				 * 第二种可能就是已经在Excel中找到匹配的列了
+				 */
+				if (assassinator.getCellIndex() != -1) {
+					continue;
+				}
+				if (title.equals(assassinator.getColumnName()) || title.equals(assassinator.getFallbackName())) {
+					assassinator.setCellIndex(index);
+					break;
+				}
+
+			}
+		}
+
+		/*
+		 * 如果标题行的每一列都尝试过一遍, 但是还有POJOAssassinator没有找到要刺杀的列(没有完成训练), 那么就得抛个异常玩玩了, 这个训练有点失败呀
+		 */
+		long uncompleteCount = assassinators.stream().filter(a -> a.getCellIndex() == -1).count();
+		if (uncompleteCount != -1L) {
+			/*
+			 * 为了记log, 表示POJO中有哪些字段在Excel中没有找到对应的列
+			 */
+			List<String> missingColumns = assassinators.stream()
+					.filter(a -> a.getCellIndex() == -1)
+					.map((a) -> {
+						return a.getColumnName() != null ? a.getColumnName() : a.getFallbackName();
+					}).collect(toList());
+			throw new AssassinationTrainFailedException(StringUtils.joinWith(", ", missingColumns));
+		}
+
+		return titleRowIndex;
+	}
+
+	private String titleValue(Cell cell) {
+		String title = cell.getStringCellValue();
+		if (title == null) {
+			return null;
+		}
+		return title.trim();
+	}
+}
