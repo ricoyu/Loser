@@ -2,6 +2,7 @@ package com.loserico.concurrent;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -11,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
+import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.loserico.concurrent.exception.ConcurrentOperationException;
 
 import lombok.extern.slf4j.Slf4j;
@@ -39,9 +41,16 @@ public final class Concurrent {
 
 	private static final ThreadFactory defaultThreadFactory = new LoserThreadFactory();
 
-	/** IO 密集型线程池, 比如执行多个数据库查询操作 */
-	private static final ExecutorService IO_POOL = ioConcentratedFixedThreadPool();
+	/**
+	 * IO 密集型线程池, 比如执行多个数据库查询操作 <p/>
+	 * 用TtlExecutors包装ExecutorService是为了在线程池中执行时也能获取到父线程中设置的ThreadLocal变量
+	 * @on
+	 */
+	private static final ExecutorService IO_POOL = TtlExecutors.getTtlExecutorService(ioConcentratedFixedThreadPool());
 
+	/**
+	 * 这个ThreadLocal放的是CompletableFuture对象, 这是在主线程里调用的, 不需要用阿里的TransmittableThreadLocal
+	 */
 	private static final ThreadLocal<Set<CompletableFuture<?>>> COMPLETABLE_FUTURE_THREAD_LOCAL = new ThreadLocal<>();
 
 	/**
@@ -88,9 +97,16 @@ public final class Concurrent {
 		addCompleteFuture(completableFuture);
 		return new FutureResult<>(completableFuture);
 	}
-	
+
+	public static <V, T> FutureResult<T> submit(Supplier<T> supplier, ThreadLocal<V> threadLocal) {
+		CompletableFuture<T> completableFuture = CompletableFuture.supplyAsync(supplier, IO_POOL);
+		addCompleteFuture(completableFuture);
+		return new FutureResult<>(completableFuture);
+	}
+
 	/**
-	 * 等待所有submit的任务执行完毕, 如果有任务抛异常了, await()方法会抛出一个CompletionException<p/>
+	 * 等待所有submit的任务执行完毕, 如果有任务抛异常了, await()方法会抛出一个CompletionException
+	 * <p/>
 	 * 不管任务是否都成功执行, COMPLETABLE_FUTURE_THREAD_LOCAL都会被清理
 	 * 
 	 * @throws CompletionException
@@ -152,5 +168,32 @@ public final class Concurrent {
 				t.setPriority(Thread.NORM_PRIORITY);
 			return t;
 		}
+	}
+
+	static class ThreadLocalSupplier<V, T> implements Supplier<V> {
+
+		private final ThreadLocal<T> threadLocal;
+
+		private final T value;
+
+		private final Supplier<V> supplier;
+
+		public ThreadLocalSupplier(ThreadLocal<T> threadLocal, T value, Supplier<V> supplier) {
+			this.threadLocal = threadLocal;
+			this.supplier = supplier;
+			this.value = value;
+		}
+
+		@Override
+		public V get() {
+			T oldValue = threadLocal.get();
+			try {
+				threadLocal.set(value);
+				return supplier.get();
+			} finally {
+				threadLocal.set(oldValue);
+			}
+		}
+
 	}
 }
