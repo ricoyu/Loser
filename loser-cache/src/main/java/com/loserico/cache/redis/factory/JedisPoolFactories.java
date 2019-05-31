@@ -3,6 +3,7 @@ package com.loserico.cache.redis.factory;
 import com.loserico.commons.resource.PropertyReader;
 
 public final class JedisPoolFactories {
+
 	private static final PropertyReader propertyReader = new PropertyReader("redis");
 
 	public static PoolFactory poolFactory() {

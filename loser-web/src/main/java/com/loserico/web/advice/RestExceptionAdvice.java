@@ -3,7 +3,6 @@ package com.loserico.web.advice;
 import static com.loserico.web.enums.StatusCode.BAD_REQUEST;
 import static com.loserico.web.enums.StatusCode.ENTITY_NOT_FOUND;
 import static java.text.MessageFormat.format;
-import static java.util.Arrays.asList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 
@@ -18,12 +17,10 @@ import org.springframework.beans.TypeMismatchException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
-import org.springframework.expression.spel.ast.OpLE;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
-import org.springframework.orm.jpa.JpaObjectRetrievalFailureException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -42,7 +39,6 @@ import com.loserico.web.exception.CommonException;
 import com.loserico.web.exception.EntityNotFoundException;
 import com.loserico.web.exception.GeneralValidationException;
 import com.loserico.web.exception.LocalizedException;
-import com.loserico.web.i18n.LocaleContextHolder;
 import com.loserico.web.utils.MessageHelper;
 import com.loserico.web.utils.ValidationUtils;
 import com.loserico.web.vo.Result;
@@ -232,65 +228,65 @@ public class RestExceptionAdvice extends ResponseEntityExceptionHandler {
 		return new ResponseEntity(result, HttpStatus.OK);
 	}
 	
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@ExceptionHandler(javax.persistence.EntityNotFoundException.class)
-	@ResponseStatus(value = HttpStatus.OK)
-	@ResponseBody
-	public ResponseEntity<Object> handleEntityNotFoundException(javax.persistence.EntityNotFoundException e) {
-		logger.error("Rest API ERROR happen", e);
-		Matcher matcher = pattern.matcher(e.getMessage());
-		String messageTemplate = null;
-		String message = null;
-		
-		if (matcher.matches()) {
-			String entity = matcher.group(1);
-			messageTemplate = "EntityNotFound." + entity;
-		} else {
-			messageTemplate = e.getMessage();
-		}
-		
-		try {
-			message = MessageHelper.getMessage(messageTemplate);
-		} catch (NoSuchMessageException e1) {
-			logger.error(format("Cannot find message template {0}", messageTemplate), e1);
-			message = MessageHelper.getMessage(ENTITY_NOT_FOUND.getMsgTemplate(),
-					ENTITY_NOT_FOUND.getDefaultMsg());
-		}
-		Result result = Results.fail()
-				.code(ENTITY_NOT_FOUND)
-				.message(message)
-				.build();
-		return new ResponseEntity(result, HttpStatus.OK);
-	}
+	/*		@SuppressWarnings({ "rawtypes", "unchecked" })
+			@ExceptionHandler(javax.persistence.EntityNotFoundException.class)
+			@ResponseStatus(value = HttpStatus.OK)
+			@ResponseBody
+			public ResponseEntity<Object> handleEntityNotFoundException(javax.persistence.EntityNotFoundException e) {
+				logger.error("Rest API ERROR happen", e);
+				Matcher matcher = pattern.matcher(e.getMessage());
+				String messageTemplate = null;
+				String message = null;
+				
+				if (matcher.matches()) {
+					String entity = matcher.group(1);
+					messageTemplate = "EntityNotFound." + entity;
+				} else {
+					messageTemplate = e.getMessage();
+				}
+				
+				try {
+					message = MessageHelper.getMessage(messageTemplate);
+				} catch (NoSuchMessageException e1) {
+					logger.error(format("Cannot find message template {0}", messageTemplate), e1);
+					message = MessageHelper.getMessage(ENTITY_NOT_FOUND.getMsgTemplate(),
+							ENTITY_NOT_FOUND.getDefaultMsg());
+				}
+				Result result = Results.fail()
+						.code(ENTITY_NOT_FOUND)
+						.message(message)
+						.build();
+				return new ResponseEntity(result, HttpStatus.OK);
+			}*/
 
-	@SuppressWarnings({ "rawtypes", "unchecked" })
-	@ExceptionHandler(JpaObjectRetrievalFailureException.class)
-	@ResponseStatus(value = HttpStatus.OK)
-	@ResponseBody
-	public ResponseEntity<Object> handleJpaObjectRetrievalFailureException(JpaObjectRetrievalFailureException e) {
-		logger.error("Rest API ERROR happen", e);
-		Matcher matcher = objectRetrievalFailurePattern.matcher(e.getCause().getMessage());
-		if (matcher.matches()) {
-			String entity = matcher.group(1);
-			String messageTemplate = "EntityNotFound." + entity;
-			String message;
-			try {
-				message = messageSource.getMessage("EntityNotFound." + entity, null,
-						LocaleContextHolder.getLocale());
-			} catch (NoSuchMessageException e1) {
-				logger.error(format("Cannot find message template {0}", messageTemplate), e1);
-				message = MessageHelper.getMessage(ENTITY_NOT_FOUND.getMsgTemplate(),
-						ENTITY_NOT_FOUND.getDefaultMsg());
+	/*	@SuppressWarnings({ "rawtypes", "unchecked" })
+		@ExceptionHandler(JpaObjectRetrievalFailureException.class)
+		@ResponseStatus(value = HttpStatus.OK)
+		@ResponseBody
+		public ResponseEntity<Object> handleJpaObjectRetrievalFailureException(JpaObjectRetrievalFailureException e) {
+			logger.error("Rest API ERROR happen", e);
+			Matcher matcher = objectRetrievalFailurePattern.matcher(e.getCause().getMessage());
+			if (matcher.matches()) {
+				String entity = matcher.group(1);
+				String messageTemplate = "EntityNotFound." + entity;
+				String message;
+				try {
+					message = messageSource.getMessage("EntityNotFound." + entity, null,
+							LocaleContextHolder.getLocale());
+				} catch (NoSuchMessageException e1) {
+					logger.error(format("Cannot find message template {0}", messageTemplate), e1);
+					message = MessageHelper.getMessage(ENTITY_NOT_FOUND.getMsgTemplate(),
+							ENTITY_NOT_FOUND.getDefaultMsg());
+				}
+				Result result = Results.fail()
+						.code(ENTITY_NOT_FOUND)
+						.message(message)
+						.results(asList(new String[] { entity, message }))
+						.build();
+				return new ResponseEntity(result, HttpStatus.OK);
 			}
-			Result result = Results.fail()
-					.code(ENTITY_NOT_FOUND)
-					.message(message)
-					.results(asList(new String[] { entity, message }))
-					.build();
-			return new ResponseEntity(result, HttpStatus.OK);
-		}
-		return new ResponseEntity(e.getMessage(), HttpStatus.OK);
-	}
+			return new ResponseEntity(e.getMessage(), HttpStatus.OK);
+		}*/
 
 	@ExceptionHandler(com.loserico.orm.exception.ApplicationException.class)
 	@ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)

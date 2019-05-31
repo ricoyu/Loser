@@ -62,8 +62,7 @@ public class RateLimitIntercepter extends HandlerInterceptorAdapter {
 		int count = rateLimit.count();
 		boolean isNotExceedLimit = JedisUtils.rateLimit(key, expire, count);
 		if (!isNotExceedLimit) {
-			Result result = Results.builder()
-				.success()
+			Result result = Results.success()
 				.code(TOO_MANY_REQUESTS.value(), TOO_MANY_REQUESTS.getReasonPhrase())
 				.build();
 			response.setHeader("Access-Control-Allow-Origin", "*");

@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.loserico.cache.redis.config.RedisProperties;
 import com.loserico.commons.resource.PropertyReader;
 
 import redis.clients.jedis.Jedis;
@@ -44,6 +45,11 @@ public class JedisSentinelPoolFactory implements PoolFactory {
 
 		logger.info("Current master: {}", sentinelPool.getCurrentHostMaster().toString());
 		return sentinelPool;
+	}
+
+	@Override
+	public Pool<Jedis> createPool(RedisProperties redisProperties) {
+		return null;
 	}
 
 }

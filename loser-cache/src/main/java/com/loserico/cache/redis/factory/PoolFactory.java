@@ -1,5 +1,6 @@
 package com.loserico.cache.redis.factory;
 
+import com.loserico.cache.redis.config.RedisProperties;
 import com.loserico.commons.resource.PropertyReader;
 
 import redis.clients.jedis.Jedis;
@@ -71,10 +72,39 @@ public interface PoolFactory {
 
 		return config;
 	}
+	
+	public default JedisPoolConfig config(RedisProperties redisProperties) {
+		JedisPoolConfig config = new JedisPoolConfig();
+		//最大连接数，如果赋值为-1，则表示不限制；如果pool已经分配了maxActive个jedis实例，则此时pool的状态为exhausted(耗尽)。
+		config.setMaxTotal(redisProperties.getMaxTotal());
+		//最大空闲数，控制一个pool最多有多少个状态为idle(空闲的)的jedis实例，默认值也是8。
+		config.setMaxIdle(redisProperties.getMaxIdle());
+		//最小空闲数
+		config.setMinIdle(redisProperties.getMinIdle());
+		//是否在从池中取出连接前进行检验，如果检验失败，则从池中去除连接并尝试取出另一个
+		config.setTestOnBorrow(redisProperties.isTestOnBorrow());
+		//在return给pool时，是否提前进行validate操作
+		config.setTestOnReturn(redisProperties.isTestOnReturn());
+		//在空闲时检查有效性，默认false
+		config.setTestWhileIdle(redisProperties.isTestWhileIdle());
+		//表示一个对象至少停留在idle状态的最短时间，然后才能被idle object evitor扫描并驱逐；
+		//表示idle object evitor两次扫描之间要sleep的毫秒数
+		config.setTimeBetweenEvictionRunsMillis(redisProperties.getTimeBetweenEvictionRunsMillis());
+		//这一项只有在timeBetweenEvictionRunsMillis大于0时才有意义
+		config.setMinEvictableIdleTimeMillis(redisProperties.getMinEvictableIdleTimeMillis());
+		//表示idle object evitor每次扫描的最多的对象数
+		config.setNumTestsPerEvictionRun(redisProperties.getNumTestsPerEvictionRun());
+		//等待可用连接的最大时间，单位毫秒，默认值为-1，表示永不超时。如果超过等待时间，则直接抛出JedisConnectionException；
+		config.setMaxWaitMillis(redisProperties.getMaxWaitMillis());
+		
+		return config;
+	}
 
 	/**
 	 * 
-	 * @return
+	 * @return Pool<Jedis>
 	 */
 	public Pool<Jedis> createPool(PropertyReader propertyReader);
+	
+	public Pool<Jedis> createPool(RedisProperties redisProperties);
 }

@@ -2,6 +2,7 @@ package com.loserico.cache.redis.factory;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.loserico.cache.redis.config.RedisProperties;
 import com.loserico.commons.resource.PropertyReader;
 
 import redis.clients.jedis.Jedis;
@@ -9,9 +10,13 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.util.Pool;
 
 public class JedisPoolFactory implements PoolFactory {
-	
+
 	@Override
 	public Pool<Jedis> createPool(PropertyReader propertyReader) {
+		boolean defaultPoolEnabled = propertyReader.getBoolean("redis.default.enabled", true);
+		if (!defaultPoolEnabled) {
+			return null;
+		}
 		String host = propertyReader.getString("redis.host", "localhost");
 		String overrideHost = System.getProperty("LOSER_REDIS_HOST");
 		if (overrideHost != null && !overrideHost.isEmpty()) {
@@ -37,7 +42,7 @@ public class JedisPoolFactory implements PoolFactory {
 		if (overridePassword != null && !overridePassword.isEmpty()) {
 			password = overridePassword;
 		}
-		int timeout = propertyReader.getInt("redis.timeout", 5000); //默认5秒超时
+		int timeout = propertyReader.getInt("redis.timeout", 5000); // 默认5秒超时
 		int db = propertyReader.getInt("redis.db", 0);
 
 		if (StringUtils.isNotBlank(password)) {
@@ -45,6 +50,16 @@ public class JedisPoolFactory implements PoolFactory {
 		} else {
 			return new JedisPool(config(propertyReader), host, port, timeout, null, db);
 		}
+	}
+
+	@Override
+	public Pool<Jedis> createPool(RedisProperties redisProperties) {
+		return new JedisPool(config(redisProperties),
+				redisProperties.getHost(),
+				redisProperties.getPort(),
+				redisProperties.getTimeout(),
+				redisProperties.getPassword(),
+				redisProperties.getDatabase());
 	}
 
 }
