@@ -9,4 +9,9 @@ public class EnvTest {
 		String redisHost = System.getenv("Path");
 		System.out.println(redisHost);
 	}
+	
+	@Test
+	public void testUserDir() {
+		System.out.println(System.getProperty("user.dir"));
+	}
 }

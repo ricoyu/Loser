@@ -132,6 +132,18 @@ public class EnumUtils {
 		}
 		return null;
 	}
+
+	/**
+	 * 根据value的类型自动解析成对应的enum
+	 * 
+	 * @param clazz
+	 * @param value
+	 * @return
+	 */
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public static <T extends Enum> T toEnum(Class clazz, Object value) {
+		return (T)lookupEnum(clazz, value);
+	}
 	
 	/**
 	 * 泛型化的版本
