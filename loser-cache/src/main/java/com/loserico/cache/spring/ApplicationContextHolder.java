@@ -1,8 +1,9 @@
 package com.loserico.cache.spring;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 不依赖Spring相关jar, 通过反射获取ApplicationContext中的Bean
@@ -15,6 +16,7 @@ import java.util.Objects;
  * @version 1.0
  * @on
  */
+@Slf4j
 public final class ApplicationContextHolder {
 
 	private static Object applicationContext;
@@ -24,20 +26,35 @@ public final class ApplicationContextHolder {
 	}
 
 	public static <T> T getBean(String beanName) {
-		Objects.requireNonNull(applicationContext);
+		if (applicationContext == null) {
+			log.info("ApplicationContext not set, return null for bean:{}", beanName);
+			return null;
+		}
 		Objects.requireNonNull(beanName);
 		return ReflectionUtils.invokeMethod(applicationContext, "getBean", beanName);
 	}
 
 	public static <T> T getBean(String beanName, Class<T> clazz) {
+		if (applicationContext == null) {
+			log.info("ApplicationContext not set, return null for bean:{}", clazz.getName());
+			return null;
+		}
 		return ReflectionUtils.invokeMethod(applicationContext, "getBean", clazz, beanName);
 	}
 
 	public static <T> T getBean(Class<T> clazz) {
+		if (applicationContext == null) {
+			log.info("ApplicationContext not set, return null for bean:{}", clazz.getName());
+			return null;
+		}
 		return ReflectionUtils.invokeMethod(applicationContext, "getBean", clazz);
 	}
 	
 	public static <T> Map<String, T> getBeans(Class<T> clazz) {
+		if (applicationContext == null) {
+			log.info("ApplicationContext not set, return null for bean:{}", clazz.getName());
+			return null;
+		}
 		return (Map<String, T>)ReflectionUtils.invokeMethod(applicationContext, "getBeansOfType", clazz);
 	}
 }

@@ -1,6 +1,7 @@
 package com.loserico.cache.redis;
 
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import org.redisson.api.LocalCachedMapOptions;
 import org.redisson.api.RBlockingDeque;
@@ -29,20 +30,22 @@ import com.loserico.cache.redis.redisson.collection.RedissonExpirableMap;
 import com.loserico.cache.redis.redisson.concurrent.RedissonLock;
 import com.loserico.cache.redis.redisson.concurrent.RedissonSemaphore;
 import com.loserico.cache.redis.redisson.config.RedissonFactory;
-import com.loserico.commons.resource.PropertyReader;
+import com.loserico.cache.resource.PropertyReader;
 
 public final class RedissonUtils {
 	private static final Logger logger = LoggerFactory.getLogger(RedissonUtils.class);
 
-	private static RedissonClient client = null; // 需要配置redis.use.redisson=true才会生效
+	private static RedissonClient client = null;
 	private static final PropertyReader propertyReader = new PropertyReader("redis");
-	private static boolean redissonEnabled = propertyReader.getBoolean("redis.redisson.enable", true);
-	private static boolean redissonLazyInit = propertyReader.getBoolean("redis.redisson.lazy", true);
+	private static boolean redissonEnabled = propertyReader.getBoolean("redisson.enable", false);
+	private static boolean redissonLazyInit = propertyReader.getBoolean("redisson.lazy", true);
+	
+	private static volatile Supplier<RedissonClient> redissonClientSupplier = null;
 
 	static {
 		if (client == null) {
 			synchronized (RedissonUtils.class) {
-				if (client == null && !redissonLazyInit) {
+				if (client == null && redissonEnabled && !redissonLazyInit) {
 					client = RedissonFactory.createRedissonClient(propertyReader);
 				}
 			}
@@ -51,10 +54,10 @@ public final class RedissonUtils {
 
 	private static RedissonClient redisson() {
 		if (!redissonEnabled) {
-			throw new OperationNotSupportedException("Redisson not enabled, try set redis.redisson.enable=true");
+			throw new OperationNotSupportedException("Redisson not enabled, try set redisson.enable=true");
 		}
 		if (client == null && redissonLazyInit) {
-			synchronized (JedisUtils.class) {
+			synchronized (RedissonUtils.class) {
 				if (client == null) {
 					client = RedissonFactory.createRedissonClient(propertyReader);
 				}

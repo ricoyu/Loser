@@ -25,7 +25,7 @@ public class RedisPoolContextHolder {
 
 	public static void setRedisPool(String redisPool) {
 		Objects.requireNonNull(redisPool, "redisPool cannot be null");
-		CONTEXT_HOLDER.set(redisPool);
+		CONTEXT_HOLDER.set(redisPool.toLowerCase());
 	}
 
 	public static void clear() {

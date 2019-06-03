@@ -1,9 +1,8 @@
 package com.loserico.cache.redis.factory;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.loserico.cache.redis.config.RedisProperties;
-import com.loserico.commons.resource.PropertyReader;
+import com.loserico.cache.resource.PropertyReader;
+import com.loserico.cache.utils.StringUtils;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;

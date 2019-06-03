@@ -25,7 +25,7 @@ class ReflectionUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> T invokeMethod(Object target, String methodName, Class<T> type) {
 		try {
-			Method method = target.getClass().getMethod(methodName, type);
+			Method method = target.getClass().getMethod(methodName, Class.class);
 			return (T) method.invoke(target, type);
 		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException e) {
@@ -37,7 +37,7 @@ class ReflectionUtils {
 	@SuppressWarnings("unchecked")
 	public static <T> T invokeMethod(Object target, String methodName, Class<T> type, String beanName) {
 		try {
-			Method method = target.getClass().getMethod(methodName, type);
+			Method method = target.getClass().getMethod(methodName, Class.class);
 			return (T) method.invoke(target, beanName, type);
 		} catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException
 				| InvocationTargetException e) {

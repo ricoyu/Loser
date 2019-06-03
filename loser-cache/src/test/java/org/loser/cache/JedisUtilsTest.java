@@ -30,6 +30,7 @@ import com.loserico.cache.redis.concurrent.atomic.AtomicLong;
 import com.loserico.commons.jackson.JacksonUtils;
 import com.peacefish.spring.concurrent.ConcurrentTemplate;
 
+import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPubSub;
 
 /**
@@ -49,15 +50,16 @@ public class JedisUtilsTest {
 	@Test
 	public void testSetGetStr() {
 		System.out.println(JedisUtils.get("foo"));
-		/*
-		 * boolean result = JedisUtils.set("foo", "bar"); System.out.println(result);
-		 * Jedis jedis = JedisUtils.getJedis(); System.out.println(jedis.get("foo"));
-		 * jedis.close();
-		 * 
-		 * System.out.println(JedisUtils.get("foo"));
-		 * System.out.println(JedisUtils.get("foo", String.class));
-		 * System.out.println(JedisUtils.get("foo"));
-		 */
+
+		boolean result = JedisUtils.set("foo", "bar");
+		System.out.println(result);
+		System.out.println(JedisUtils.get("foo"));
+		/*Jedis jedis = JedisUtils.getJedis(); System.out.println(jedis.get("foo"));
+		jedis.close();
+		
+		System.out.println(JedisUtils.get("foo"));
+		System.out.println(JedisUtils.get("foo", String.class));
+		System.out.println(JedisUtils.get("foo"));*/
 
 		/*
 		 * System.out.println("==========="); boolean result2 =

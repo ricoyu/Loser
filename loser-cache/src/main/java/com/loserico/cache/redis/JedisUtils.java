@@ -39,9 +39,9 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.JavaType;
 import com.loserico.cache.auth.LoginResult;
 import com.loserico.cache.exception.JedisValueOperationException;
+import com.loserico.cache.exception.NoJedisPoolException;
 import com.loserico.cache.redis.collection.QueueListener;
 import com.loserico.cache.redis.concurrent.Lock;
-import com.loserico.cache.redis.config.RedisProperties;
 import com.loserico.cache.redis.factory.JedisPoolFactories;
 import com.loserico.cache.redis.listeners.MessageListener;
 import com.loserico.cache.redis.listeners.UnSubsccribeListener;
@@ -49,11 +49,11 @@ import com.loserico.cache.redis.pool.RoutingRedisPool;
 import com.loserico.cache.redis.pure.concurrent.NonBlockingLock;
 import com.loserico.cache.redis.status.hash.HSet;
 import com.loserico.cache.redis.status.hash.TTL;
+import com.loserico.cache.resource.PropertyReader;
 import com.loserico.cache.spring.ApplicationContextHolder;
 import com.loserico.cache.utils.IOUtils;
 import com.loserico.commons.jackson.JacksonUtils;
 import com.loserico.commons.jsonpath.JsonPathUtils;
-import com.loserico.commons.resource.PropertyReader;
 import com.loserico.commons.utils.PrimitiveUtils;
 import com.peacefish.spring.concurrent.ConcurrentTemplate;
 import com.peacefish.spring.transaction.TransactionEvents;
@@ -78,6 +78,7 @@ import redis.clients.util.Pool;
  * @on
  *
  */
+@SuppressWarnings("unchecked")
 public final class JedisUtils {
 
 	private static final Logger logger = LoggerFactory.getLogger(JedisUtils.class);
@@ -87,8 +88,79 @@ public final class JedisUtils {
 	private static final String NON_BLOCKING_LOCK_PREDIX = "$lock:";
 	private static final String NON_BLOCKING_LOCK_SUFFIX = ":nblk$";
 
+	/**
+	 * 直接在redis.properties中配置好redis.host, redis.port等参数会创建的Pool 
+	 * <p/>这种情况JedisUtils连接的只有这一个数据源.
+	 * 
+	 * 可以通过 redis.default.enabled=false 显式禁用defaultPool.
+	 * 如果为routingRedisPool做了配置, 那么defaultPool也会禁用, 二选一
+	 * @on
+	 */
 	private static volatile Pool<Jedis> defaultPool = null;
-	private static volatile RoutingRedisPool<Jedis> routingRedisPool = null ;
+
+	/**
+	 * 如果应用需要连接多个Redis Instance或者同一个Instance的多个database时, 可以选择配置RoutingRedisPool
+	 * 跟上面的defaultPool是二选一的关系. 
+	 * 
+	 * <pre>{@code
+	 * cxkg.redis.host=192.168.102.103
+	 * cxkg.redis.port=6379
+	 * cxkg.redis.password=123456
+	 * cxkg.redis.database=2
+	 * 
+	 * kangan.redis.host=192.168.102.103
+	 * kangan.redis.port=6379
+	 * kangan.redis.password=123456
+	 * kangan.redis.database=3
+	 * 
+	 * 然后配置RedisProperties
+	 * @Configuration
+	 * @PropertySource("redis.properties")
+	 * public class CacheConfig {
+	 * 
+	 * @Bean
+	 * @ConfigurationProperties(prefix = "cxkg.redis")
+	 * public RedisProperties cxkgProperties() {
+	 * 	return new RedisProperties();
+	 * }
+	 * 
+	 * @Bean
+	 * @ConfigurationProperties(prefix = "kangan.redis")
+	 * public RedisProperties kangAnProperties() {
+	 * 	return new RedisProperties();
+	 * }
+	 * }
+	 * 
+	 * 再配置routingRedisPool
+	 * @SuppressWarnings("unchecked")
+	 * @Bean
+	 * public RoutingRedisPool<Jedis> routingRedisPool(
+	 * 		@Qualifier("cxkgProperties") RedisProperties cxkgProperties, 
+	 * 		@Qualifier("kangAnProperties") RedisProperties kangAnProperties) {
+	 * 	RoutingRedisPool routingRedisPool = new RoutingRedisPool<>();
+	 * 	Map<String, RedisProperties> redisPropertiesMap = new HashMap<>();
+	 * 	redisPropertiesMap.put("cxkg", cxkgProperties);
+	 * 	redisPropertiesMap.put("kangan", kangAnProperties);
+	 * 	return routingRedisPool;
+	 * }
+	 * 
+	 * 最后一步, 为ApplicationContextHolder设置一个applicationContext, 同时对JedisPool进行预热
+	 * @Bean
+	 * public MethodInvokingBean jedisWarmUp(ApplicationContext applicationContext) {
+	 * 	ApplicationContextHolder.setApplicationContext(applicationContext);
+	 * 	MethodInvokingBean methodInvokingBean = new MethodInvokingBean();
+	 * 	methodInvokingBean.setStaticMethod("com.loserico.cache.redis.JedisUtils.warmUp");
+	 * 	return methodInvokingBean;
+	 * }
+	 * </pre>
+	 * @on
+	 */
+	private static volatile RoutingRedisPool<Jedis> routingRedisPool = null;
+
+	/**
+	 * 通过defaultPool或者routingRedisPool获取Resource
+	 */
+	private static volatile Supplier<Jedis> resourceSupplier = null;
 
 	/**
 	 * 默认读取classpath下redis.properties文件
@@ -107,9 +179,14 @@ public final class JedisUtils {
 					defaultPool = JedisPoolFactories.poolFactory().createPool(propertyReader);
 				}
 				routingRedisPool = ApplicationContextHolder.getBean(RoutingRedisPool.class);
-				if (routingRedisPool == null) {
-					routingRedisPool = new RoutingRedisPool<>();
-					routingRedisPool.setDefaultTargetPool(defaultPool);
+
+				if (routingRedisPool != null) {
+					resourceSupplier = () -> routingRedisPool.determineTargetPool().getResource();
+				} else if (defaultPool != null) {
+					resourceSupplier = () -> defaultPool.getResource();
+				} else {
+					throw new NoJedisPoolException(
+							"defaultPool and routingRedisPool are both null, please config one.");
 				}
 			}
 		}
@@ -125,7 +202,7 @@ public final class JedisUtils {
 	 * @on
 	 */
 	private static Jedis jedis() {
-		return routingRedisPool.determineTargetPool().getResource();
+		return resourceSupplier.get();
 	}
 
 	/**
@@ -199,7 +276,7 @@ public final class JedisUtils {
 	 * @return true表示设置成功
 	 */
 	public static boolean set(byte[] key, byte[] value) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			String status = jedis.set(key, value);
 			logger.debug("set: {}", status);
@@ -266,7 +343,7 @@ public final class JedisUtils {
 	 * @return true 表示设置成功
 	 */
 	public static boolean set(byte[] key, byte[] value, byte[] expires) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			String setExpireSha1 = shaHashs.computeIfAbsent("setExpire.lua", (x) -> {
 				logger.info("Load script {}", "setExpire.lua");
@@ -288,7 +365,7 @@ public final class JedisUtils {
 	 * @on
 	 */
 	public static boolean setnx(String key, String value) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		return 1L == jedis.setnx(toBytes(key), toBytes(value));
 	}
 
@@ -304,7 +381,7 @@ public final class JedisUtils {
 	 */
 	public static boolean setnx(String key, Object value) {
 		Objects.requireNonNull(key);
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		return 1L == jedis.setnx(toBytes(key), toBytes(value));
 	}
 
@@ -318,7 +395,7 @@ public final class JedisUtils {
 	 */
 	public static boolean setnx(Object key, Object value) {
 		Objects.requireNonNull(key);
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		return 1L == jedis.setnx(toBytes(key), toBytes(value));
 	}
 
@@ -336,7 +413,7 @@ public final class JedisUtils {
 		Objects.requireNonNull(key);
 		Objects.requireNonNull(timeUnit);
 
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			String setnxSha1 = shaHashs.computeIfAbsent("setnx.lua", x -> {
 				logger.info("Load script {}", "setnx.lua");
@@ -441,7 +518,7 @@ public final class JedisUtils {
 	}
 
 	public static String get(byte[] key) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			byte[] value = jedis.get(key);
 			if (value != null && value.length > 0) {
@@ -456,7 +533,7 @@ public final class JedisUtils {
 	}
 
 	public static <T> T get(byte[] key, Class<T> clazz) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			byte[] value = jedis.get(key);
 			return toObject(value, clazz);
@@ -474,7 +551,7 @@ public final class JedisUtils {
 	 * @return Long
 	 */
 	public static Long getLong(String key) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			byte[] value = jedis.get(toBytes(key));
 			if (value != null && value.length > 0) {
@@ -500,7 +577,7 @@ public final class JedisUtils {
 	}
 
 	public static <T> List<T> getList(byte[] key, Class<T> clazz) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			byte[] value = jedis.get(key);
 			return toList(value, clazz);
@@ -587,7 +664,7 @@ public final class JedisUtils {
 	 * @return Long
 	 */
 	public static Long incr(String key) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return jedis.incr(key);
 		} finally {
@@ -605,7 +682,7 @@ public final class JedisUtils {
 	 * @return Long
 	 */
 	public static Long incrBy(String key, long size) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return jedis.incrBy(key, size);
 		} finally {
@@ -644,7 +721,7 @@ public final class JedisUtils {
 		 * @return long
 		 */
 		public static long lpush(String key, String... values) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.lpush(key, values);
 			} finally {
@@ -662,7 +739,7 @@ public final class JedisUtils {
 		 * @return long
 		 */
 		public static long lpush(String key, Object... values) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.lpush(toBytes(key), toBytes(values));
 			} finally {
@@ -680,7 +757,7 @@ public final class JedisUtils {
 		 * @return long
 		 */
 		public static long rpush(String key, String... values) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.rpush(key, values);
 			} finally {
@@ -698,7 +775,7 @@ public final class JedisUtils {
 		 * @return long
 		 */
 		public static long rpush(String key, Object... values) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.rpush(toBytes(key), toBytes(values));
 			} finally {
@@ -715,7 +792,7 @@ public final class JedisUtils {
 		 * @return String
 		 */
 		public static String lpop(String key) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.lpop(key);
 			} finally {
@@ -732,7 +809,7 @@ public final class JedisUtils {
 		 * @return T
 		 */
 		public static <T> T lpop(String key, Class<T> clazz) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				byte[] data = jedis.lpop(toBytes(key));
 				return toObject(data, clazz);
@@ -814,7 +891,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static List<String> blpop(String key, int timeoutSeconds) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.blpop(timeoutSeconds, key);
 			} finally {
@@ -838,7 +915,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static String blpop(String key) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				List<String> list = jedis.blpop(0, key);
 				list.get(1);
@@ -857,7 +934,7 @@ public final class JedisUtils {
 		 * @return T
 		 */
 		public static <T> T blpop(String key, Class<T> clazz) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				byte[][] keys = new byte[1][];
 				keys[0] = toBytes(key);
@@ -885,7 +962,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static void blpop(String key, QueueListener listener) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				List<String> results = jedis.blpop(0, key);
 				listener.onDeque(results.get(0), results.get(1));
@@ -967,7 +1044,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static List<String> brpop(int timeout, String... keys) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.brpop(timeout, keys);
 			} finally {
@@ -987,7 +1064,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static String brpop(int timeout, String key) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				List<String> list = jedis.brpop(timeout, key);
 				return list.get(1);
@@ -1021,7 +1098,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static <T> T brpop(int timeout, String key, Class<T> clazz) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				List<byte[]> list = jedis.brpop(timeout, toBytes(key));
 				byte[] data = list.get(1);
@@ -1061,7 +1138,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static void brpop(String key, QueueListener listener) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				List<String> results = jedis.brpop(0, key);
 				listener.onDeque(results.get(0), results.get(1));
@@ -1079,7 +1156,7 @@ public final class JedisUtils {
 		 * @return
 		 */
 		public static long llen(String key) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.llen(key);
 			} finally {
@@ -1100,7 +1177,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static List<String> lrange(String key, long start, long end) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.lrange(key, start, end);
 			} finally {
@@ -1121,7 +1198,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static <T> List<T> lrange(String key, long start, long end, Class<T> clazz) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				List<byte[]> list = jedis.lrange(toBytes(key), start, end);
 				if (list.isEmpty()) {
@@ -1147,7 +1224,7 @@ public final class JedisUtils {
 		 * @return List<String>
 		 */
 		public static List<String> list(String key) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.lrange(key, 0, -1);
 			} finally {
@@ -1164,7 +1241,7 @@ public final class JedisUtils {
 		 * @return List<T>
 		 */
 		public static <T> List<T> list(String key, Class<T> clazz) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				List<byte[]> list = jedis.lrange(toBytes(key), 0, -1);
 				if (list.isEmpty()) {
@@ -1202,7 +1279,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static long lrem(String key, long count, String value) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.lrem(key, count, value);
 			} finally {
@@ -1238,7 +1315,7 @@ public final class JedisUtils {
 			if (StringUtils.isBlank(element)) {
 				return 0;
 			}
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.sadd(key, element);
 			} finally {
@@ -1256,7 +1333,7 @@ public final class JedisUtils {
 		 * @return long 本次添加的元素个数
 		 */
 		public static long sadd(String key, Object... elements) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.sadd(toBytes(key), toBytes(elements));
 			} finally {
@@ -1299,7 +1376,7 @@ public final class JedisUtils {
 		 * @return Set<String>
 		 */
 		public Set<String> smembers(String key) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.smembers(key);
 			} finally {
@@ -1316,7 +1393,7 @@ public final class JedisUtils {
 		 * @return Set<String>
 		 */
 		public <T> Set<T> smembers(String key, Class<T> clazz) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				Set<byte[]> byteSet = jedis.smembers(toBytes(key));
 				Set<T> resultSet = new HashSet<>();
@@ -1339,7 +1416,7 @@ public final class JedisUtils {
 		 * @return boolean
 		 */
 		public static boolean sismember(String key, Object element) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.sismember(toBytes(key), toBytes(element));
 			} finally {
@@ -1356,7 +1433,7 @@ public final class JedisUtils {
 		 * @return long
 		 */
 		public static long scard(String key) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.scard(key);
 			} finally {
@@ -1374,7 +1451,7 @@ public final class JedisUtils {
 		 * @return long
 		 */
 		public static long srem(String key, Object... elements) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.srem(toBytes(key), toBytes(elements));
 			} finally {
@@ -1407,7 +1484,7 @@ public final class JedisUtils {
 		 * @return double
 		 */
 		public static double zscore(String key, String member) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.zscore(key, member);
 			} finally {
@@ -1447,7 +1524,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static int hset(String key, Object field, Object value) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				Long result = (Long) jedis.hset(toBytes(key), toBytes(field), toBytes(value));
 				return result.intValue();
@@ -1472,7 +1549,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static HSet hset(String key, Object field, Object value, int ttl) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String hashSha = shaHashs.computeIfAbsent("hash.lua", x -> {
 					logger.info("Load script {}", "hash.lua");
@@ -1503,7 +1580,7 @@ public final class JedisUtils {
 		 * @param hash
 		 */
 		public static boolean hmset(String key, Map<String, String> hash) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String result = jedis.hmset(key, hash);
 				return STATUS_SUCCESS.equalsIgnoreCase(result);
@@ -1524,7 +1601,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static <K, V> AtomicLongArray hmsetGeneric(String key, Map<K, V> map) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			AtomicLongArray statistic = new AtomicLongArray(2);
 			try {
 				map.entrySet().forEach((entry) -> {
@@ -1559,7 +1636,7 @@ public final class JedisUtils {
 				return null;
 			}
 
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String hashSha = shaHashs.computeIfAbsent("hash.lua", x -> {
 					logger.debug("Load script {}", "hash.lua");
@@ -1589,7 +1666,7 @@ public final class JedisUtils {
 		 * @return String
 		 */
 		public static String hget(String key, Object field) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				if (field == null) {
 					return null;
@@ -1612,7 +1689,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static <T> T hget(String key, Object field, JavaType javaType) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				byte[] data = jedis.hget(toBytes(key), toBytes(field));
 				;
@@ -1638,7 +1715,7 @@ public final class JedisUtils {
 		 * @return T
 		 */
 		public static <T> T hget(String key, Object field, Class<T> clazz) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				if (field == null) {
 					return null;
@@ -1661,7 +1738,7 @@ public final class JedisUtils {
 		 * @return List<T>
 		 */
 		public static <T> List<T> hgetList(String key, Object field, Class<T> clazz) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				if (field == null) {
 					return null;
@@ -1682,7 +1759,7 @@ public final class JedisUtils {
 		 * @return Map<String, String>
 		 */
 		public static Map<String, String> hgetAll(String key) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.hgetAll(key);
 			} finally {
@@ -1702,7 +1779,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static <V> Map<String, V> hgetAll(String key, JavaType javaType) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				Map<byte[], byte[]> map = jedis.hgetAll(toBytes(key));
 				return map.entrySet().stream()
@@ -1745,7 +1822,7 @@ public final class JedisUtils {
 		 * @return Map<K, List<V>>
 		 */
 		public static <K, V> Map<K, V> hgetAll(String key, Class<K> clazzKey, JavaType javaType) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				Map<byte[], byte[]> map = jedis.hgetAll(toBytes(key));
 				return map.entrySet().stream()
@@ -1776,7 +1853,7 @@ public final class JedisUtils {
 		 * @return Map<K, V>
 		 */
 		public static <K, V> Map<K, V> hgetAll(byte[] key, Class<K> clazzKey, Class<V> clazzValue) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				Map<byte[], byte[]> map = jedis.hgetAll(key);
 				return map.entrySet().stream()
@@ -1798,7 +1875,7 @@ public final class JedisUtils {
 		 * @return Map<String, String>
 		 */
 		public static Map<String, String> hmget(String key, String... fields) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				List<String> values = jedis.hmget(key, fields);
 				Map<String, String> resultMap = new HashMap<>();
@@ -1822,7 +1899,7 @@ public final class JedisUtils {
 		 * @return Map<String, String>
 		 */
 		public static <K, V> Map<K, V> hmget(String key, List<K> fields, Class<V> clazzValue) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				List<byte[]> values = jedis.hmget(toBytes(key), toBytes(fields));
 				Map<K, V> resultMap = new HashMap<>();
@@ -1846,7 +1923,7 @@ public final class JedisUtils {
 		 * @return
 		 */
 		public static boolean hexists(String key, String field) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.hexists(key, field);
 			} finally {
@@ -1864,7 +1941,7 @@ public final class JedisUtils {
 		 * @return
 		 */
 		public static boolean hexists(String key, Object field) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return jedis.hexists(toBytes(key), toBytes(field));
 			} finally {
@@ -1882,7 +1959,7 @@ public final class JedisUtils {
 		 * @return int 删除的field数量
 		 */
 		public static int hdel(String key, Object field) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String hashSha = shaHashs.computeIfAbsent("hash.lua", x -> {
 					logger.info("Load script {}", "hash.lua");
@@ -1918,7 +1995,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static TTL ttl(String key, String field) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String hashSha = shaHashs.computeIfAbsent("hash.lua", x -> {
 					logger.debug("Load script {}", "hash.lua");
@@ -1965,7 +2042,7 @@ public final class JedisUtils {
 		 * @return
 		 */
 		public static int expire(String key, String field, int ttl) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String hashSha = shaHashs.computeIfAbsent("hash.lua", x -> {
 					logger.debug("Load script {}", "hash.lua");
@@ -2000,7 +2077,7 @@ public final class JedisUtils {
 		 * @return
 		 */
 		public static int persist(String key, String field) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String hashSha = shaHashs.computeIfAbsent("hash.lua", x -> {
 					logger.debug("Load script {}", "hash.lua");
@@ -2028,7 +2105,7 @@ public final class JedisUtils {
 		 * @return
 		 */
 		public static long time() {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String hashSha = shaHashs.computeIfAbsent("hash.lua", x -> {
 					logger.debug("Load script {}", "hash.lua");
@@ -2050,7 +2127,7 @@ public final class JedisUtils {
 		 * @return
 		 */
 		public static List<String> expiredFields(String key) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String hashSha = shaHashs.computeIfAbsent("hash.lua", x -> {
 					logger.debug("Load script {}", "hash.lua");
@@ -2075,7 +2152,7 @@ public final class JedisUtils {
 		 * 调试用
 		 */
 		public static void testPurpose(String key, String field) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String hashSha = shaHashs.computeIfAbsent("hash.lua", x -> {
 					logger.debug("Load script {}", "hash.lua");
@@ -2181,8 +2258,8 @@ public final class JedisUtils {
 				List<?> authorities,
 				T loginInfo) {
 			Objects.requireNonNull(timeUnit);
-			
-			Jedis jedis = defaultPool.getResource();
+
+			Jedis jedis = jedis();
 			try {
 				String setnxSha1 = shaHashs.computeIfAbsent("spring-security-auth.lua", x -> {
 					logger.info("Load script {}", "spring-security-auth.lua");
@@ -2198,7 +2275,7 @@ public final class JedisUtils {
 						toBytes(toJson(userdetails)),
 						toBytes(toJson(authorities)),
 						toBytes(loginInfo));
-				
+
 				String resultJson = JedisUtils.toString(result);
 				T lastLoginInfo = JsonPathUtils.readNode(resultJson, "$.lastLoginInfo");
 				boolean success = JsonPathUtils.readNode(resultJson, "$.success");
@@ -2218,7 +2295,7 @@ public final class JedisUtils {
 		 * @return boolean
 		 */
 		public static boolean logout(String token) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String setnxSha1 = shaHashs.computeIfAbsent("spring-security-auth.lua", x -> {
 					logger.info("Load script {}", "spring-security-auth.lua");
@@ -2248,7 +2325,7 @@ public final class JedisUtils {
 		 */
 		public static <T> Map<String, T> clearExpired() {
 			logger.info("开始清理过期token");
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String clearExpiredSha1 = shaHashs.computeIfAbsent("spring-security-auth.lua", x -> {
 					logger.info("Load script {}", "spring-security-auth.lua");
@@ -2275,7 +2352,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static String auth(String token) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String authSha = shaHashs.computeIfAbsent("spring-security-auth.lua", x -> {
 					logger.info("Load script {}", "spring-security-auth.lua");
@@ -2305,7 +2382,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static String isLogined(String username) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String authSha = shaHashs.computeIfAbsent("spring-security-auth.lua", x -> {
 					logger.info("Load script {}", "spring-security-auth.lua");
@@ -2330,7 +2407,7 @@ public final class JedisUtils {
 		 * @return T
 		 */
 		public static <T> T userDetails(String token, Class<T> clazz) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String userdetails = JedisUtils.HASH.hget(AUTH_TOKEN_USERDETAILS_HASH, token);
 				return JacksonUtils.toObject(userdetails, clazz);
@@ -2349,7 +2426,7 @@ public final class JedisUtils {
 		 * @return List<T>
 		 */
 		public static <T> List<T> authorities(String token, Class<T> clazz) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String authorities = JedisUtils.HASH.hget(AUTH_TOKEN_AUTHORITIES_HASH, token);
 				return JacksonUtils.toList(authorities, clazz);
@@ -2368,7 +2445,7 @@ public final class JedisUtils {
 		 * @return T
 		 */
 		public static <T> T loginInfo(String token, Class<T> clazz) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				String loginInfo = JedisUtils.HASH.hget(AUTH_TOKEN_LOGIN_INFO_HASH, token);
 				return JacksonUtils.toObject(loginInfo, clazz);
@@ -2386,7 +2463,7 @@ public final class JedisUtils {
 		 * @return
 		 */
 		public static String username(String token) {
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			try {
 				return JedisUtils.HASH.hget(AUTH_TOKEN_USERNAME_HASH, token);
 			} finally {
@@ -2420,7 +2497,7 @@ public final class JedisUtils {
 				ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
 				scheduledExecutorService.scheduleAtFixedRate(() -> clearExpired(),
 						1,
-						period, 
+						period,
 						TimeUnit.MINUTES);
 			}
 		}
@@ -2437,7 +2514,7 @@ public final class JedisUtils {
 	 * @on
 	 */
 	public static boolean rateLimit(String key, int expire, int count) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			String rateLimitSha1 = shaHashs.computeIfAbsent("rateLimit.lua",
 					(x) -> {
@@ -2461,7 +2538,7 @@ public final class JedisUtils {
 	 * @return
 	 */
 	public static boolean exists(String key) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			boolean exists = jedis.exists(key);
 			return exists;
@@ -2473,7 +2550,7 @@ public final class JedisUtils {
 	}
 
 	public static boolean exists(Object key) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			boolean exists = false;
 			if (Serializable.class.isInstance(key)) {
@@ -2497,7 +2574,7 @@ public final class JedisUtils {
 	 * @return boolean 是否成功设置了过期时间
 	 */
 	public static boolean expire(String key, int timeout) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return jedis.expire(key, timeout) == 1;
 		} finally {
@@ -2515,7 +2592,7 @@ public final class JedisUtils {
 	 * @return boolean 是否成功设置了过期时间
 	 */
 	public static boolean expire(Object key, int timeout) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return jedis.expire(toBytes(key), timeout) == 1;
 		} finally {
@@ -2533,7 +2610,7 @@ public final class JedisUtils {
 	 * @return boolean 是否成功设置了过期时间
 	 */
 	public static boolean expire(String key, int timeout, TimeUnit timeUnit) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return jedis.expire(key, toSeconds(timeout, timeUnit)) == 1;
 		} finally {
@@ -2551,7 +2628,7 @@ public final class JedisUtils {
 	 * @return boolean 是否成功设置了过期时间
 	 */
 	public static boolean expire(Object key, int timeout, TimeUnit timeUnit) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return jedis.expire(toBytes(key), toSeconds(timeout, timeUnit)) == 1;
 		} finally {
@@ -2569,7 +2646,7 @@ public final class JedisUtils {
 	 * @return boolean 是否成功设置了过期时间
 	 */
 	public static boolean expireAt(String key, long unixTime) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return jedis.expireAt(key, unixTime) == 1;
 		} finally {
@@ -2587,7 +2664,7 @@ public final class JedisUtils {
 	 * @return boolean 是否成功设置了过期时间
 	 */
 	public static boolean expireAt(Object key, long unixTime) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return jedis.expireAt(toBytes(key), unixTime) == 1;
 		} finally {
@@ -2604,7 +2681,7 @@ public final class JedisUtils {
 	 * @return
 	 */
 	public static boolean persist(String key) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return jedis.persist(key) == 1;
 		} finally {
@@ -2621,7 +2698,7 @@ public final class JedisUtils {
 	 * @return
 	 */
 	public static boolean persist(Object key) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return jedis.persist(toBytes(key)) == 1;
 		} finally {
@@ -2638,7 +2715,7 @@ public final class JedisUtils {
 	 * @return long 返回key的过期时间, 单位秒, -1 表示没有过期时间 -2 表示可以不存在
 	 */
 	public static long ttl(String key) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return jedis.ttl(key);
 		} finally {
@@ -2655,7 +2732,7 @@ public final class JedisUtils {
 	 * @return long 返回key的过期时间, 单位秒, -1 表示没有过期时间 -2 表示可以不存在
 	 */
 	public static long ttl(Object key) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return jedis.ttl(toBytes(key));
 		} finally {
@@ -2666,7 +2743,7 @@ public final class JedisUtils {
 	}
 
 	public static void del(String key) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			jedis.del(key);
 		} finally {
@@ -2677,7 +2754,7 @@ public final class JedisUtils {
 	}
 
 	public static void del(Object key) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			jedis.del(toBytes(key));
 		} finally {
@@ -2689,7 +2766,7 @@ public final class JedisUtils {
 
 	@SuppressWarnings("unchecked")
 	public static <T> T eval(String script) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return (T) jedis.eval(script);
 		} finally {
@@ -2707,7 +2784,7 @@ public final class JedisUtils {
 	 */
 	@SuppressWarnings("unchecked")
 	public static <T> T eval(String script, int keyCount, String... params) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return (T) jedis.eval(script, keyCount, params);
 		} finally {
@@ -2717,7 +2794,7 @@ public final class JedisUtils {
 
 	@SuppressWarnings("unchecked")
 	public static <T> T evalsha(String sha) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			return (T) jedis.evalsha(sha);
 		} finally {
@@ -2952,7 +3029,7 @@ public final class JedisUtils {
 	 * @on
 	 */
 	public static boolean unlock(String key, String token) {
-		Jedis jedis = defaultPool.getResource();
+		Jedis jedis = jedis();
 		try {
 			String setnxSha1 = shaHashs.computeIfAbsent("unlock.lua", x -> {
 				logger.info("Load script {}", "unlock.lua");
@@ -3032,7 +3109,7 @@ public final class JedisUtils {
 			for (int i = 0; i < maxIdle; i++) {
 				Jedis jedis = null;
 				try {
-					jedis = defaultPool.getResource();
+					jedis = jedis();
 					minIdleJedisList.add(jedis);
 					jedis.ping();
 				} catch (Exception e) {
@@ -3052,7 +3129,7 @@ public final class JedisUtils {
 			}
 
 			List<String> scripts = asList("rateLimit.lua", "setnx.lua");
-			Jedis jedis = defaultPool.getResource();
+			Jedis jedis = jedis();
 			scripts.forEach((script) -> {
 				shaHashs.computeIfAbsent(script, (x) -> {
 					String sha1 = jedis.scriptLoad(IOUtils.readClassPathFile("/lua-scripts/" + script));

@@ -8,7 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.loserico.cache.redis.config.RedisProperties;
-import com.loserico.commons.resource.PropertyReader;
+import com.loserico.cache.resource.PropertyReader;
 
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisSentinelPool;
