@@ -1,7 +1,5 @@
 package com.loserico.cache.redis.concurrent;
 
-import com.loserico.cache.redis.cache.interfaze.Expirable;
-
 /**
  * <b>分布式锁</b><p>
  * 提供加锁成功与否的返回结果与解锁操作
@@ -14,7 +12,7 @@ import com.loserico.cache.redis.cache.interfaze.Expirable;
  * @version 1.0
  * @on
  */
-public interface Lock extends Expirable {
+public interface Lock extends java.util.concurrent.locks.Lock{
 
 	/**
 	 * 是否成功获取锁
@@ -39,4 +37,13 @@ public interface Lock extends Expirable {
 	 * @on
 	 */
 	public void unlockAnyway();
+
+    /**
+     * Remaining time to live of this lock 
+     *
+     * @return time in milliseconds
+     *          -2 if the lock does not exist.
+     *          -1 if the lock exists but has no associated expire.
+     */
+    long remainTimeToLive();
 }

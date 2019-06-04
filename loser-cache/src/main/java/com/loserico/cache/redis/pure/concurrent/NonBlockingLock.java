@@ -2,9 +2,11 @@ package com.loserico.cache.redis.pure.concurrent;
 
 import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
 
 import com.loserico.cache.exception.OperationNotSupportedException;
 import com.loserico.cache.redis.JedisUtils;
+import com.loserico.cache.redis.cache.interfaze.Expirable;
 import com.loserico.cache.redis.concurrent.Lock;
 import com.loserico.commons.utils.DateUtils;
 
@@ -19,7 +21,7 @@ import com.loserico.commons.utils.DateUtils;
  * @version 1.0
  * @on
  */
-public class NonBlockingLock implements Lock {
+public class NonBlockingLock implements Lock, Expirable {
 
 	private String key;
 
@@ -89,6 +91,51 @@ public class NonBlockingLock implements Lock {
 	@Override
 	public long remainTimeToLive() {
 		return JedisUtils.ttl(key);
+	}
+
+	/**
+	 * 不支持改操作, 请改用RedissonLock
+	 * throws UnsupportedOperationException
+	 */
+	@Override
+	public void lock() {
+		throw new UnsupportedOperationException("NonBlockingLock not support lock(), use RedissonLock instead");
+	}
+
+	/**
+	 * 不支持改操作, 请改用RedissonLock
+	 * throws UnsupportedOperationException
+	 */
+	@Override
+	public void lockInterruptibly() throws InterruptedException {
+		throw new UnsupportedOperationException("NonBlockingLock not support lockInterruptibly(), use RedissonLock instead");
+	}
+
+	/**
+	 * 不支持改操作, 请改用RedissonLock
+	 * throws UnsupportedOperationException
+	 */
+	@Override
+	public boolean tryLock() {
+		throw new UnsupportedOperationException("NonBlockingLock not support tryLock(), use RedissonLock instead");
+	}
+
+	/**
+	 * 不支持改操作, 请改用RedissonLock
+	 * throws UnsupportedOperationException
+	 */
+	@Override
+	public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+		throw new UnsupportedOperationException("NonBlockingLock not support tryLock(time, unit), use RedissonLock instead");
+	}
+
+	/**
+	 * 不支持改操作, 请改用RedissonLock
+	 * throws UnsupportedOperationException
+	 */
+	@Override
+	public Condition newCondition() {
+		throw new UnsupportedOperationException("NonBlockingLock not support newCondition(), use RedissonLock instead");
 	}
 
 }

@@ -126,7 +126,7 @@ public abstract class AbstractRoutingRedisPool<T> extends Pool<T> {
 
 	@PostConstruct
 	public void init() {
-		if (redisPropertiesMap != null) {
+		if (redisPropertiesMap != null && !redisPropertiesMap.isEmpty()) {
 			for (Entry<String, RedisProperties> entry : redisPropertiesMap.entrySet()) {
 				Pool<T> pool = (Pool<T>)JedisPoolFactories.poolFactory().createPool(entry.getValue());
 				targetPools.put(entry.getKey().toLowerCase(), pool);

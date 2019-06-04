@@ -98,7 +98,7 @@
 
 		<mongo-java-driver.version>3.2.1</mongo-java-driver.version>
 		<jedis.version>2.10.2</jedis.version>
-		<redisson.version>3.7.0</redisson.version>
+		<redisson.version>3.11.0</redisson.version>
 		<memcached.version>3.0.2</memcached.version>
 
 		<lucene.version>7.4.0</lucene.version>

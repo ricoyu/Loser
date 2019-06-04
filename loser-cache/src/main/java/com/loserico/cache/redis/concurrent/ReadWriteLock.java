@@ -1,7 +1,5 @@
 package com.loserico.cache.redis.concurrent;
 
-import com.loserico.cache.redis.cache.interfaze.Expirable;
-
 /**
  * A {@code ReadWriteLock} maintains a pair of associated {@link
  * Lock locks}, one for read-only operations and one for writing.
@@ -21,7 +19,7 @@ import com.loserico.cache.redis.cache.interfaze.Expirable;
  * @version 1.0
  * @on
  */
-public interface ReadWriteLock extends Expirable{
+public interface ReadWriteLock {
 
 	/**
 	 * Returns the lock used for reading.

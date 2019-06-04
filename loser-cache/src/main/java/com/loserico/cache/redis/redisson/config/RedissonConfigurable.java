@@ -2,8 +2,6 @@ package com.loserico.cache.redis.redisson.config;
 
 import org.redisson.config.Config;
 
-import com.loserico.cache.resource.PropertyReader;
-
 /**
  * Redisson 配置器接口
  * <p>
@@ -21,5 +19,5 @@ public interface RedissonConfigurable {
 	 * 配置Redisson
 	 * @return Config
 	 */
-	Config getConfig(PropertyReader propertyReader);
+	Config getConfig(RedissonProperties redissonProperties);
 }

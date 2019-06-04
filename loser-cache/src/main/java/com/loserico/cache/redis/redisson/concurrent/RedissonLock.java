@@ -1,12 +1,11 @@
 package com.loserico.cache.redis.redisson.concurrent;
 
-import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
 
 import org.redisson.api.RLock;
 
 import com.loserico.cache.redis.concurrent.Lock;
-import com.loserico.commons.utils.DateUtils;
 import com.peacefish.spring.transaction.TransactionEvents;
 
 /**
@@ -53,32 +52,37 @@ public class RedissonLock implements Lock{
 	 * @throws IllegalMonitorStateException
 	 */
 	public void unlockAnyway() throws IllegalMonitorStateException{
-		TransactionEvents.instance().afterCommit(() -> lock.unlock());
-	}
-
-	@Override
-	public boolean expire(long timeToLive, TimeUnit timeUnit) {
-		return lock.expire(timeToLive, timeUnit);
-	}
-
-	@Override
-	public boolean expireAt(long timestamp) {
-		return lock.expireAt(timestamp);
-	}
-
-	@Override
-	public boolean expireAt(LocalDateTime timestamp) {
-		return lock.expireAt(DateUtils.toDate(timestamp));
-	}
-
-	@Override
-	public boolean clearExpire() {
-		return lock.clearExpire();
+		TransactionEvents.instance().afterCompletion(() -> lock.forceUnlock());
 	}
 
 	@Override
 	public long remainTimeToLive() {
 		return lock.remainTimeToLive();
+	}
+
+	@Override
+	public void lock() {
+		lock.lock();
+	}
+
+	@Override
+	public void lockInterruptibly() throws InterruptedException {
+		lock.lockInterruptibly();
+	}
+
+	@Override
+	public boolean tryLock() {
+		return lock.tryLock();
+	}
+
+	@Override
+	public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+		return lock.tryLock(time, unit);
+	}
+
+	@Override
+	public Condition newCondition() {
+		return lock.newCondition();
 	}
 
 }

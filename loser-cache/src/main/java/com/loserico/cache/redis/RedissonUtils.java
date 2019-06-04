@@ -1,5 +1,6 @@
 package com.loserico.cache.redis;
 
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -13,9 +14,10 @@ import org.redisson.api.RedissonClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.loserico.cache.exception.OperationNotSupportedException;
+import com.loserico.cache.exception.NoJedissionClientException;
 import com.loserico.cache.redis.cache.interfaze.BlockingDeque;
 import com.loserico.cache.redis.cache.interfaze.BlockingQueue;
+import com.loserico.cache.redis.cache.interfaze.SynchronousQueue;
 import com.loserico.cache.redis.collection.ConcurrentMap;
 import com.loserico.cache.redis.collection.ExpirableMap;
 import com.loserico.cache.redis.concurrent.ExpirableSemaphore;
@@ -23,47 +25,71 @@ import com.loserico.cache.redis.concurrent.Lock;
 import com.loserico.cache.redis.concurrent.Semaphore;
 import com.loserico.cache.redis.concurrent.atomic.AtomicLong;
 import com.loserico.cache.redis.redisson.atomic.RedissonAtomicLong;
+import com.loserico.cache.redis.redisson.client.RoutingRedissonClient;
 import com.loserico.cache.redis.redisson.collection.RedissonBlockingDeque;
 import com.loserico.cache.redis.redisson.collection.RedissonBlockingQueue;
 import com.loserico.cache.redis.redisson.collection.RedissonConcurrentMap;
 import com.loserico.cache.redis.redisson.collection.RedissonExpirableMap;
+import com.loserico.cache.redis.redisson.collection.RedissonSynchronousQueue;
 import com.loserico.cache.redis.redisson.concurrent.RedissonLock;
 import com.loserico.cache.redis.redisson.concurrent.RedissonSemaphore;
 import com.loserico.cache.redis.redisson.config.RedissonFactory;
 import com.loserico.cache.resource.PropertyReader;
+import com.loserico.cache.spring.ApplicationContextHolder;
 
+import lombok.extern.slf4j.Slf4j;
+
+/**
+ * 基于Redisson的
+ * <p>
+ * Copyright: Copyright (c) 2019-06-03 17:06
+ * <p>
+ * Company: Sexy Uncle Inc.
+ * <p>
+ * @author Rico Yu  ricoyu520@gmail.com
+ * @version 1.0
+ * @on
+ */
+@Slf4j
 public final class RedissonUtils {
 	private static final Logger logger = LoggerFactory.getLogger(RedissonUtils.class);
-
-	private static RedissonClient client = null;
 	private static final PropertyReader propertyReader = new PropertyReader("redis");
+	
+	/**可以整个打开或关闭Redisson*/
 	private static boolean redissonEnabled = propertyReader.getBoolean("redisson.enable", false);
-	private static boolean redissonLazyInit = propertyReader.getBoolean("redisson.lazy", true);
+	/**是否启用默认的Redisson*/
+	private static boolean redissonDefaultEnabled = propertyReader.getBoolean("redisson.default-enable", true);
+
+	private static volatile RedissonClient defaultRedissonClient = null;
+	
+	/** 如果已经配置了routingRedissonClient, 那么defaultRedissonClient将不起作用*/
+	private static volatile RoutingRedissonClient routingRedissonClient;
 	
 	private static volatile Supplier<RedissonClient> redissonClientSupplier = null;
 
 	static {
-		if (client == null) {
+		if (defaultRedissonClient == null) {
 			synchronized (RedissonUtils.class) {
-				if (client == null && redissonEnabled && !redissonLazyInit) {
-					client = RedissonFactory.createRedissonClient(propertyReader);
+				RoutingRedissonClient routingRedissonClient = ApplicationContextHolder.getBean(RoutingRedissonClient.class);
+				if (routingRedissonClient == null) {
+					if (defaultRedissonClient == null && redissonEnabled && redissonDefaultEnabled) {
+						defaultRedissonClient = RedissonFactory.createRedissonClient(propertyReader);
+					}
+				}
+				if (routingRedissonClient !=  null) {
+					redissonClientSupplier = () -> routingRedissonClient.determineTargetClient();
+				} else if (defaultRedissonClient != null) {
+					redissonClientSupplier = () -> defaultRedissonClient;
+				} else {
+					throw new NoJedissionClientException(
+							"defaultRedissonClient and routingRedissonClient are both null, please config one.");
 				}
 			}
 		}
 	}
 
 	private static RedissonClient redisson() {
-		if (!redissonEnabled) {
-			throw new OperationNotSupportedException("Redisson not enabled, try set redisson.enable=true");
-		}
-		if (client == null && redissonLazyInit) {
-			synchronized (RedissonUtils.class) {
-				if (client == null) {
-					client = RedissonFactory.createRedissonClient(propertyReader);
-				}
-			}
-		}
-		return client;
+		return redissonClientSupplier.get();
 	}
 
 	/**
@@ -240,7 +266,7 @@ public final class RedissonUtils {
 	}
 
 	/**
-	 * 分布式的阻塞队列，队列长度没有限制
+	 * 分布式的阻塞队列, 队列长度没有限制
 	 * 
 	 * @param name
 	 * @param capacity
@@ -274,6 +300,32 @@ public final class RedissonUtils {
 	public static <E> BlockingDeque<E> blockingDeque(String name) {
 		RBlockingDeque<E> blockingDeque = redisson().getBlockingDeque(name);
 		return new RedissonBlockingDeque<>(blockingDeque);
+	}
+	
+	/**
+	 * 创建一个分布式的SynchronousQueue
+	 * @param <E>
+	 * @param name
+	 * @return SynchronousQueue
+	 */
+	public static <E> SynchronousQueue<E> synchronousQueue(String name) {
+		RBoundedBlockingQueue<E> rBoundedBlockingQueue = redisson().getBoundedBlockingQueue(name);
+		boolean capacitySetSuccess = rBoundedBlockingQueue.trySetCapacity(1);
+		logger.info("Capacity set " + (capacitySetSuccess ? "Success" : "Fail"));
+		return new RedissonSynchronousQueue<>(rBoundedBlockingQueue, capacitySetSuccess);
+	}
+	
+	/**
+	 * 创建一个分布式的SynchronousQueue, 采用随机名字
+	 * @param <E>
+	 * @param name
+	 * @return SynchronousQueue
+	 */
+	public static <E> SynchronousQueue<E> synchronousQueue() {
+		RBoundedBlockingQueue<E> rBoundedBlockingQueue = redisson().getBoundedBlockingQueue(random("queue:sync"));
+		boolean capacitySetSuccess = rBoundedBlockingQueue.trySetCapacity(1);
+		logger.info("Capacity set " + (capacitySetSuccess ? "Success" : "Fail"));
+		return new RedissonSynchronousQueue<>(rBoundedBlockingQueue, capacitySetSuccess);
 	}
 
 	/**
@@ -315,4 +367,7 @@ public final class RedissonUtils {
 		return new RedissonSemaphore(semaphore, success);
 	}
 
+	private static String random(String suffix) {
+		return "redisson:" + suffix + UUID.randomUUID().toString().replaceAll("-", "");
+	}
 }
