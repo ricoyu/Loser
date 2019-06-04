@@ -3,13 +3,13 @@
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>loser-search</artifactId>
-	<name>loser-search</name>
+	<name>Loser's Search on Elasticsearch</name>
 	<url>http://maven.apache.org</url>
 
 	<parent>
 		<groupId>com.loserico</groupId>
 		<artifactId>loser</artifactId>
-		<version>4.6</version>
+		<version>4.6.1</version>
 	</parent>
 
 	<properties>

@@ -1,7 +1,6 @@
 package com.loserico.cache.redis.redisson.config;
 
 import org.redisson.config.Config;
-import org.redisson.config.TransportMode;
 
 public class SimgleNodeRedissonConfig implements RedissonConfigurable {
 
@@ -18,7 +17,7 @@ public class SimgleNodeRedissonConfig implements RedissonConfigurable {
 		 * useReplicatedServers 	– for replicated nodes. 
 		 * @on
 		 */
-		config.setTransportMode(TransportMode.EPOLL);
+//		config.setTransportMode(TransportMode.EPOLL);
 		config.useSingleServer()
 				//Redisson 3.7.0 采用redis://前缀的，老版本不带redis://前缀
 				.setAddress(redissonProperties.getAddress())

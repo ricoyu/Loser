@@ -5,13 +5,13 @@
 	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>loser-io</artifactId>
-	<name>loser-io</name>
+	<name>Loser's IO Utilities</name>
 	<url>http://maven.apache.org</url>
 
 	<parent>
 		<groupId>com.loserico</groupId>
 		<artifactId>loser</artifactId>
-		<version>4.6</version>
+		<version>4.6.1</version>
 	</parent>
 
 	<dependencies>

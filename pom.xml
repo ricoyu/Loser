@@ -5,7 +5,7 @@
 	<groupId>com.loserico</groupId>
 	<artifactId>loser</artifactId>
 	<packaging>pom</packaging>
-	<version>4.6</version>
+	<version>4.6.1</version>
 	<name>Fighting</name> 
 	<url>http://maven.apache.org</url>
 
