@@ -3049,6 +3049,13 @@ public final class JedisUtils {
 	/**
 	 * 在事务提交或者回滚后释放锁,即保证锁的释放
 	 * 
+	 * 使用这个方法需要配置Spring Bean
+	 * <pre>{@code
+	 * @Bean
+	 * public TransactionEvents transactionEvents() {
+	 *     return new TransactionEvents();
+	 * }
+	 * </pre>
 	 * @param key
 	 * @param token
 	 */

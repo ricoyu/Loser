@@ -29,6 +29,13 @@ public class ReflectionUtils {
 
 	private static final Field[] NO_FIELDS = {};
 	
+	/**
+	 * 在pojoType中查找标注了annotationClass注解的字段, 并封装成Field -> annotationClassInstance的形式
+	 * @param <T>
+	 * @param pojoType
+	 * @param annotationClass
+	 * @return Map<Field, T>
+	 */
 	public static <T extends Annotation> Map<Field, T> annotatedField(Class<?> pojoType, Class<T> annotationClass) {
 		Map<Field, T> fieldAnnotationMap = new HashMap<>();
 		Field[] fields = getFields(pojoType);

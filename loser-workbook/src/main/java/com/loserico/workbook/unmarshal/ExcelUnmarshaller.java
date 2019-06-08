@@ -12,6 +12,8 @@ import com.loserico.workbook.unmarshal.assassinator.AssassinatorMaster;
 import com.loserico.workbook.unmarshal.assassinator.POJOAssassinator;
 import com.loserico.workbook.unmarshal.builder.POJOAssassinatorBuilder;
 
+import lombok.Builder;
+
 /**
  * 将Excel解析为POJO列表的入口类
  * <p>
@@ -23,7 +25,16 @@ import com.loserico.workbook.unmarshal.builder.POJOAssassinatorBuilder;
  * @version 1.0
  * @on
  */
-public final class ExcelUnmarshaller {
+@Builder
+public final class ExcelUnmarshaller<T> {
+	
+	private Workbook workbook;
+	
+	private String sheetName;
+	
+	private int titleRowIndex;
+	
+	private Class<T> pojoType;
 
 	public static <T> List<T> unmarshall(Workbook workbook, String sheetName, int titleRowIndex, Class<T> pojoType) {
 		List<POJOAssassinator> assassinators = POJOAssassinatorBuilder.build(pojoType);

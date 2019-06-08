@@ -16,10 +16,8 @@ import com.loserico.workbook.exception.RowNotFoundException;
 import com.loserico.workbook.exception.SheetNotExistException;
 import com.loserico.workbook.utils.ExcelUtils;
 
-import lombok.Data;
-
 /**
- * Assassinator的师傅, 负责将某个POJOAssassinator与Sheet中的某列对应起来
+ * Assassinator大师, 负责将某个POJOAssassinator与Sheet中的某列对应起来
  * <p>
  * Copyright: Copyright (c) 2019-05-23 16:04
  * <p>
@@ -90,7 +88,7 @@ public final class AssassinatorMaster {
 	public int train(List<POJOAssassinator> assassinators, Workbook workbook) {
 		/*
 		 * 如果所有POJOAssassinator的cellIndex都不是-1
-		 * 表示每个POJOAssassinator都找到了自己要刺杀的是Sheet的哪一列, 所以不需要再训练了
+		 * 表示每个POJOAssassinator都找到了自己对应的是Sheet的哪一列, 所以不需要再训练了
 		 */
 		long count = assassinators.stream().filter(a -> a.getCellIndex() == -1).count();
 		if (count == 0) {
@@ -117,10 +115,10 @@ public final class AssassinatorMaster {
 			while (iterator.hasNext()) {
 				titleRow = (Row) iterator.next();
 				String title = titleValue(titleRow.getCell(0));
-				if (title != null && !"".equals(title)) {
+				if (isNotBlank(title)) {
 					titleRowIndex = titleRow.getRowNum();
 					break;
-				} 
+				}
 			}
 		}
 
@@ -189,5 +187,14 @@ public final class AssassinatorMaster {
 			return null;
 		}
 		return title.trim();
+	}
+	
+	/**
+	 * 检测字符串不为null并且不是只包含空格的空字符串
+	 * @param s
+	 * @return
+	 */
+	private boolean isNotBlank(String s) {
+		return s != null && !"".equals(s.trim());
 	}
 }
