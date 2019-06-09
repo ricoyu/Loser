@@ -2,6 +2,7 @@ package com.loserico.workbook;
 
 import static com.loserico.commons.jackson.JacksonUtils.toJson;
 
+import java.io.File;
 import java.util.List;
 
 import org.apache.poi.ss.usermodel.Workbook;
@@ -17,13 +18,16 @@ public class ExcelUnmarshellTest {
 	@Test
 	public void testUnmarshall() throws Exception {
 		Class.forName("com.loserico.commons.utils.DateUtils");
-		Workbook workbook = ExcelUtils.getWorkbook(IOUtils.readClasspathFileAsFile("excel/958395-one.csv"));
+		File file = IOUtils.readClasspathFileAsFile("excel/958395-one.csv");
+//		Workbook workbook = ExcelUtils.getWorkbook(IOUtils.readClasspathFileAsFile("excel/958395-one.csv"));
 		long begin = System.currentTimeMillis();
 		List<SettlementItem> settlementItems = ExcelUnmarshaller.builder()
-				.workbook(workbook)
+//				.workbook(workbook)
+				.file(file)
 				.sheetName("992704（2018.9.4结算 ）")
 				.fallbackSheetIndex(0)
 				.pojoType(SettlementItem.class)
+				.validate(true)
 				.build()
 				.unmarshall();
 		long end = System.currentTimeMillis();

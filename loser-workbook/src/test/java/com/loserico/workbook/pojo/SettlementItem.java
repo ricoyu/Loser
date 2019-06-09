@@ -3,6 +3,8 @@ package com.loserico.workbook.pojo;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import javax.validation.constraints.NotNull;
+
 import com.loserico.workbook.annotation.Col;
 import com.loserico.workbook.enums.Ticket;
 
@@ -36,6 +38,7 @@ public class SettlementItem {
 	private LocalDateTime businessTime; // 业务发生时间
 
 	@Col(name = "台账类型")
+	@NotNull(message = "台账类型不能为空")
 	private String deskType; // 台账类型
 
 	@Col(name = "采购员")
