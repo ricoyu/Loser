@@ -23,13 +23,11 @@ import java.time.format.DateTimeParseException;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
@@ -92,45 +90,59 @@ public final class DateUtils {
 	 */
 	// yyyy-MM-dd
 	private static final Pattern PT_ISO_DATE = Pattern.compile("\\d{4}-\\d{2}-\\d{2}");
+	public static final DateTimeFormatter DTF_ISO_DATE = ofPattern("yyyy-MM-dd");
 	public static final String FMT_ISO_DATE = "yyyy-MM-dd";
 	// yyyy-MM-d
 	private static final Pattern PT_ISO_DATE_1 = Pattern.compile("\\d{4}-\\d{2}-\\d{1}");
+	public static final DateTimeFormatter DTF_ISO_DATE_1 = ofPattern("yyyy-MM-d");
 	public static final String FMT_ISO_DATE_1 = "yyyy-MM-d";
 	// yyyy-M-dd
 	private static final Pattern PT_ISO_DATE_2 = Pattern.compile("\\d{4}-\\d{1}-\\d{2}");
+	public static final DateTimeFormatter DTF_ISO_DATE_2 = ofPattern("yyyy-M-dd");
 	public static final String FMT_ISO_DATE_2 = "yyyy-M-dd";
 	// yyyy-M-d
 	private static final Pattern PT_ISO_DATE_3 = Pattern.compile("\\d{4}-\\d{1}-\\d{1}");
+	public static final DateTimeFormatter DTF_ISO_DATE_3 = ofPattern("yyyy-M-d");
 	public static final String FMT_ISO_DATE_3 = "yyyy-M-d";
 
 	// MM-dd-yyyy
 	private static final Pattern PT_DATE_EN = Pattern.compile("\\d{2}-\\d{2}-\\\\d{4}");
+	public static final DateTimeFormatter DTF_DATE_FORMAT_EN = ofPattern("MM/dd/yyyy");
 	public static final String FMT_DATE_FORMAT_EN = "MM/dd/yyyy";
 	// MM-d-yyyy
 	private static final Pattern PT_DATE_EN_1 = Pattern.compile("\\d{2}-\\d{1}-\\\\d{4}");
+	public static final DateTimeFormatter DTF_DATE_FORMAT_EN_1 = ofPattern("MM/d/yyyy");
 	public static final String FMT_DATE_FORMAT_EN_1 = "MM/d/yyyy";
 	// M-dd-yyyy
 	private static final Pattern PT_DATE_EN_2 = Pattern.compile("\\d{1}-\\d{2}-\\\\d{4}");
+	public static final DateTimeFormatter DTF_DATE_FORMAT_EN_2 = ofPattern("M/dd/yyyy");
 	public static final String FMT_DATE_FORMAT_EN_2 = "M/dd/yyyy";
 	// M-d-yyyy
 	private static final Pattern PT_DATE_EN_3 = Pattern.compile("\\d{1}-\\d{1}-\\\\d{4}");
+	public static final DateTimeFormatter DTF_DATE_FORMAT_EN_3 = ofPattern("M/d/yyyy");
 	public static final String FMT_DATE_FORMAT_EN_3 = "M/d/yyyy";
 
 	// yyyy/MM/dd
 	private static final Pattern PT_DATE_EN_4 = Pattern.compile("\\d{4}/\\d{2}/\\d{2}");
+	public static final DateTimeFormatter DTF_DATE_FORMAT_EN_4 = ofPattern("yyyy/MM/dd"); // 2018/11/11这种格式
+	public static final DateTimeFormatter DTF_DATE_FORMAT_EN_LOCALE_4 = DateTimeFormatter.ofPattern("yyyy/MM/dd", Locale.ENGLISH); // 2018/11/11这种格式
 	public static final String FMT_DATE_FORMAT_EN_4 = "yyyy/MM/dd"; // 2018/11/11这种格式
 	// yyyy/MM/d
 	private static final Pattern PT_DATE_EN_5 = Pattern.compile("\\d{4}/\\d{2}/\\d{1}");
+	public static final DateTimeFormatter DTF_DATE_FORMAT_EN_5 = ofPattern("yyyy/MM/d"); // 2018/11/1这种格式
 	public static final String FMT_DATE_FORMAT_EN_5 = "yyyy/MM/d"; // 2018/11/1这种格式
 	// yyyy/M/dd
 	private static final Pattern PT_DATE_EN_6 = Pattern.compile("\\d{4}/\\d{1}/\\d{2}");
+	public static final DateTimeFormatter DTF_DATE_FORMAT_EN_6 = ofPattern("yyyy/M/dd"); // 2018/7/11这种格式
 	public static final String FMT_DATE_FORMAT_EN_6 = "yyyy/M/dd"; // 2018/7/11这种格式
 	// yyyy/M/d
 	private static final Pattern PT_DATE_EN_7 = Pattern.compile("\\d{4}/\\d{1}/\\d{1}");
+	public static final DateTimeFormatter DTF_DATE_FORMAT_EN_7 = ofPattern("yyyy/M/d"); // 2018/7/1这种格式
 	public static final String FMT_DATE_FORMAT_EN_7 = "yyyy/M/d"; // 2018/7/1这种格式
 
 	// yyyyMMdd
 	private static final Pattern PT_DATE_CONCISE = Pattern.compile("\\d{8}");
+	public static final DateTimeFormatter DTF_DATE_CONCISE = ofPattern("yyyyMMdd"); // 20180711这种格式
 	public static final String FMT_DATE_CONCISE = "yyyyMMdd"; // 20180711这种格式
 
 	//d-MMM-yy
@@ -231,6 +243,7 @@ public final class DateUtils {
 	
 	// yyyy-MM
 	private static final Pattern PT_MONTH = Pattern.compile("\\d{4}-\\d{2}");
+	private static final DateTimeFormatter DTF_MONTH = ofPattern("yyyy-MM");
 
 	private static final Pattern PT_TIME_LONG = Pattern.compile("\\d{2}:\\d{2}:\\d{2}");
 	private static final Pattern PT_TIME_MIDDLE = Pattern.compile("\\d{2}:\\d{2}");
@@ -1437,39 +1450,129 @@ public final class DateUtils {
 	public static LocalDate toLocalDate(String source) {
 		Objects.nonNull(source);
 		if (PT_ISO_DATE.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern(FMT_ISO_DATE));
-		} else if (PT_ISO_DATE_1.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern(FMT_ISO_DATE_1));
-		} else if (PT_ISO_DATE_2.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern(FMT_ISO_DATE_2));
-		} else if (PT_ISO_DATE_3.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern(FMT_ISO_DATE_3));
-		} else if (PT_DATE_EN.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN));
-		} else if (PT_DATE_EN_1.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN_1));
-		} else if (PT_DATE_EN_1.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN_2));
-		} else if (PT_DATE_EN_3.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN_3));
-		} else if (PT_DATE_EN_5.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN_5));
-		} else if (PT_DATE_EN_6.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN_6));
-		} else if (PT_DATE_EN_7.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern(FMT_DATE_FORMAT_EN_7));
-		} else if (PT_MONTH.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern("yyyy-MM"));
-		} else if (PT_DATE_CONCISE.matcher(source).matches()) {
-			return LocalDate.parse(source, ofPattern("yyyyMMdd"));
+			return LocalDate.parse(source, DTF_ISO_DATE);
+		} 
+
+		if (PT_ISO_DATE_1.matcher(source).matches()) {
+			return LocalDate.parse(source, DTF_ISO_DATE_1);
+		} 
+
+		if (PT_ISO_DATE_2.matcher(source).matches()) {
+			return LocalDate.parse(source, DTF_ISO_DATE_2);
+		} 
+
+		if (PT_ISO_DATE_3.matcher(source).matches()) {
+			return LocalDate.parse(source, DTF_ISO_DATE_3);
+		}
+
+		if (PT_DATE_EN.matcher(source).matches()) {
+			return LocalDate.parse(source, DTF_DATE_FORMAT_EN);
+		} 
+
+		if (PT_DATE_EN_1.matcher(source).matches()) {
+			return LocalDate.parse(source, DTF_DATE_FORMAT_EN_1);
+		} 
+
+		if (PT_DATE_EN_1.matcher(source).matches()) {
+			return LocalDate.parse(source, DTF_DATE_FORMAT_EN_2);
+		} 
+
+		if (PT_DATE_EN_3.matcher(source).matches()) {
+			return LocalDate.parse(source, DTF_DATE_FORMAT_EN_3);
+		}
+
+		if (PT_DATE_EN_5.matcher(source).matches()) {
+			return LocalDate.parse(source, DTF_DATE_FORMAT_EN_5);
+		} 
+
+		if (PT_DATE_EN_6.matcher(source).matches()) {
+			return LocalDate.parse(source, DTF_DATE_FORMAT_EN_6);
+		} 
+
+		if (PT_DATE_EN_7.matcher(source).matches()) {
+			return LocalDate.parse(source, DTF_DATE_FORMAT_EN_7);
+		}
+
+		if (PT_MONTH.matcher(source).matches()) {
+			return LocalDate.parse(source, DTF_MONTH);
+		} 
+
+		if (PT_DATE_CONCISE.matcher(source).matches()) {
+			return LocalDate.parse(source, DTF_DATE_CONCISE);
 		}
 
 		try {
-			return LocalDate.parse(source, DateTimeFormatter.ofPattern(FMT_DATE_FORMAT_EN_4, Locale.ENGLISH));
+			return LocalDate.parse(source, DTF_DATE_FORMAT_EN_LOCALE_4);
 		} catch (DateTimeParseException e) {
 		}
 		try {
-			return LocalDate.parse(source, DateTimeFormatter.ofPattern(FMT_DATE_FORMAT_EN_4));
+			return LocalDate.parse(source, DTF_DATE_FORMAT_EN_4);
+		} catch (DateTimeParseException e) {
+		}
+		log.warn("{} does not match any LocalDate format! ", source);
+		return null;
+	}
+	
+	public static DateTimeFormatter getFormatter(String source) {
+		Objects.nonNull(source);
+		if (PT_ISO_DATE.matcher(source).matches()) {
+			return DTF_ISO_DATE;
+		} 
+
+		if (PT_ISO_DATE_1.matcher(source).matches()) {
+			return DTF_ISO_DATE_1;
+		} 
+
+		if (PT_ISO_DATE_2.matcher(source).matches()) {
+			return DTF_ISO_DATE_2;
+		} 
+
+		if (PT_ISO_DATE_3.matcher(source).matches()) {
+			return DTF_ISO_DATE_3;
+		} 
+
+		if (PT_DATE_EN.matcher(source).matches()) {
+			return DTF_DATE_FORMAT_EN;
+		} 
+
+		if (PT_DATE_EN_1.matcher(source).matches()) {
+			return DTF_DATE_FORMAT_EN_1;
+		} 
+
+		if (PT_DATE_EN_1.matcher(source).matches()) {
+			return DTF_DATE_FORMAT_EN_2;
+		} 
+
+		if (PT_DATE_EN_3.matcher(source).matches()) {
+			return DTF_DATE_FORMAT_EN_3;
+		}
+
+		if (PT_DATE_EN_5.matcher(source).matches()) {
+			return DTF_DATE_FORMAT_EN_5;
+		} 
+
+		if (PT_DATE_EN_6.matcher(source).matches()) {
+			return DTF_DATE_FORMAT_EN_6;
+		} 
+
+		if (PT_DATE_EN_7.matcher(source).matches()) {
+			return DTF_DATE_FORMAT_EN_7;
+		}
+
+		if (PT_MONTH.matcher(source).matches()) {
+			return DTF_MONTH;
+		} 
+
+		if (PT_DATE_CONCISE.matcher(source).matches()) {
+			return DTF_DATE_CONCISE;
+		}
+		
+		try {
+			return DTF_DATE_FORMAT_EN_LOCALE_4;
+		} catch (DateTimeParseException e) {
+		}
+		try {
+			return DTF_DATE_FORMAT_EN_4;
 		} catch (DateTimeParseException e) {
 		}
 		log.warn("{} does not match any LocalDate format! ", source);

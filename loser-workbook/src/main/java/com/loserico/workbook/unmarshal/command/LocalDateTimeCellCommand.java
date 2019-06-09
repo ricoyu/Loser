@@ -60,11 +60,12 @@ public class LocalDateTimeCellCommand extends BaseCellCommand {
 				String cellValue = str(c);
 				return DateUtils.toLocalDateTime(cellValue.trim());
 			};
+			atomicReference.compareAndSet(null, functionConvertor);
+			
 			LocalDateTime localDateTime = functionConvertor.apply(cell);
 			if (localDateTime != null) {
 				ReflectionUtils.setField(field, pojo, localDateTime);
 			}
-			atomicReference.compareAndSet(null, functionConvertor);
 			return;
 		}
 

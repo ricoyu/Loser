@@ -16,7 +16,8 @@ public class ExcelUnmarshellTest {
 
 	@Test
 	public void testUnmarshall() throws Exception {
-		Workbook workbook = ExcelUtils.getWorkbook(IOUtils.readClasspathFileAsFile("excel/1005466.xlsx"));
+		Class.forName("com.loserico.commons.utils.DateUtils");
+		Workbook workbook = ExcelUtils.getWorkbook(IOUtils.readClasspathFileAsFile("excel/958395-one.csv"));
 		long begin = System.currentTimeMillis();
 		List<SettlementItem> settlementItems = ExcelUnmarshaller.builder()
 				.workbook(workbook)
@@ -27,6 +28,7 @@ public class ExcelUnmarshellTest {
 				.unmarshall();
 		long end = System.currentTimeMillis();
 		System.out.println("Total row : " + settlementItems.size() + ", Cost " + (end - begin) + " miliseconds");
-//		System.out.println(toJson(settlementItems));
+		System.out.println(toJson(settlementItems));
 	}
+	
 }

@@ -14,7 +14,10 @@ import com.loserico.workbook.annotation.Col;
 import com.loserico.workbook.exception.NoCellCommandException;
 import com.loserico.workbook.unmarshal.assassinator.POJOAssassinator;
 import com.loserico.workbook.unmarshal.command.BigDecimalCellCommand;
+import com.loserico.workbook.unmarshal.command.BooleanCellCommand;
+import com.loserico.workbook.unmarshal.command.DoubleCellCommand;
 import com.loserico.workbook.unmarshal.command.EnumCellCommand;
+import com.loserico.workbook.unmarshal.command.IntegerCellCommand;
 import com.loserico.workbook.unmarshal.command.LocalDateCellCommand;
 import com.loserico.workbook.unmarshal.command.LocalDateTimeCellCommand;
 import com.loserico.workbook.unmarshal.command.LongCellCommand;
@@ -76,6 +79,18 @@ public class POJOAssassinatorBuilder {
 			}
 			if (fieldType.isAssignableFrom(BigDecimal.class)) {
 				assassinator.setCellCommand(new BigDecimalCellCommand(field));
+				continue;
+			}
+			if (fieldType.isAssignableFrom(Boolean.class)) {
+				assassinator.setCellCommand(new BooleanCellCommand(field));
+				continue;
+			}
+			if (fieldType.isAssignableFrom(Double.class)) {
+				assassinator.setCellCommand(new DoubleCellCommand(field));
+				continue;
+			}
+			if (fieldType.isAssignableFrom(Integer.class)) {
+				assassinator.setCellCommand(new IntegerCellCommand(field));
 				continue;
 			}
 			if (fieldType.isEnum()) {

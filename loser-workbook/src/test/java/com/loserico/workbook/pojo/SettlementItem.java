@@ -45,7 +45,7 @@ public class SettlementItem {
 	private String remark; // 备注
 
 	@Col(name = "SKU编码")
-	private Long skuCode; // SKU编码
+	private Integer skuCode; // SKU编码
 
 	@Col(name = "SKU名称")
 	private String skuName; // SKU名称

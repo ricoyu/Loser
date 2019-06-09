@@ -30,6 +30,7 @@ public class LongCellCommand extends BaseCellCommand {
 		if (cell.getCellTypeEnum() == CellType.NUMERIC || cell.getCellTypeEnum() == CellType.FORMULA) {
 			Function<Cell, Long> convertor = (c) -> (long) c.getNumericCellValue();
 			reference.compareAndSet(null, convertor);
+			
 			Long longValue = convertor.apply(cell);
 			if (longValue != null) {
 				ReflectionUtils.setField(field, pojo, longValue);

@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
+import org.apache.poi.ss.usermodel.DateUtil;
 
 import com.loserico.commons.utils.DateUtils;
 import com.loserico.workbook.utils.ReflectionUtils;
@@ -45,7 +46,9 @@ public class LocalDateCellCommand extends BaseCellCommand {
 		// ------------- Step 1 -------------
 		if (atomicReference.get() != null) {
 			LocalDate localDate = atomicReference.get().apply(cell);
-			ReflectionUtils.setField(this.field, pojo, localDate);
+			if (localDate != null) {
+				ReflectionUtils.setField(this.field, pojo, localDate);
+			}
 			return;
 		}
 
@@ -55,12 +58,14 @@ public class LocalDateCellCommand extends BaseCellCommand {
 		if (cellTypeEnum == CellType.STRING) {
 			Function<Cell, LocalDate> functionConvertor = (c) -> {
 				String cellValue = str(c);
-
-				return DateUtils.toLocalDate(cellValue.trim());
+				return DateUtils.toLocalDate(cellValue);
 			};
-			LocalDate localDate = functionConvertor.apply(cell);
-			ReflectionUtils.setField(field, pojo, localDate);
 			atomicReference.compareAndSet(null, functionConvertor);
+			
+			LocalDate localDate = functionConvertor.apply(cell);
+			if (localDate != null) {
+				ReflectionUtils.setField(field, pojo, localDate);
+			}
 			return;
 		}
 
@@ -91,7 +96,7 @@ public class LocalDateCellCommand extends BaseCellCommand {
 					return LocalDate.parse(String.valueOf((long) c.getNumericCellValue()), FMT_DATE_CONCISE);
 				};
 				atomicReference.compareAndSet(null, functionConvertor);
-				localDate = functionConvertor.apply(cell);
+				localDate = LocalDate.parse(dateStr, FMT_DATE_CONCISE);;
 				if (localDate != null) {
 					ReflectionUtils.setField(field, pojo, localDate);
 				}
