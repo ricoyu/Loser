@@ -3,6 +3,7 @@ package com.loserico.workbook.pojo;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 
 import com.loserico.workbook.annotation.Col;
@@ -31,14 +32,14 @@ public class SettlementItem {
 	@Col(name = "单据编号")
 	private String ticketId; // 单据编号
 
-	@Col(name = "采购单号")
+	@Col(name = "业务单号", fallback = "采购单号")
 	private String businessId; // 采购单号
 
 	@Col(name = "业务发生时间")
 	private LocalDateTime businessTime; // 业务发生时间
 
 	@Col(name = "台账类型")
-	@NotNull(message = "台账类型不能为空")
+//	@NotNull(message = "台账类型不能为空")
 	private String deskType; // 台账类型
 
 	@Col(name = "采购员")
@@ -57,6 +58,7 @@ public class SettlementItem {
 	private BigDecimal unitPrice; // 单价
 
 	@Col(name = "数量")
+	@Min(value = 2, message = "数量最少2个起购")
 	private Long qty; // 数量
 
 	@Col(name = "金额")

@@ -109,7 +109,12 @@ public final class ExcelUnmarshaller {
 					log.error("Should have a default constructor", e);
 					throw new RuntimeException("Should have a default constructor", e);
 				}
+				results.add(instance);
 
+				for (POJOAssassinator pojoAssassinator : assassinators) {
+					pojoAssassinator.assassinate(row, instance);
+				}
+				
 				/*
 				 * 每反序列化一个POJO执行一次数据校验, 防止在Excel很大时, 全部分序列化完成后再做数据
 				 * 校验遇到失败的话整个过程会比较慢的情况. 
@@ -123,11 +128,6 @@ public final class ExcelUnmarshaller {
 						vios.addAll(violations);
 						throw new BindException("Row[" + row.getRowNum() + "] validate failed!", vios);
 					}
-				}
-				results.add(instance);
-
-				for (POJOAssassinator pojoAssassinator : assassinators) {
-					pojoAssassinator.assassinate(row, instance);
 				}
 			}
 		} else {
