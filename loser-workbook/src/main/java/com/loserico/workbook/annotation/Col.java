@@ -34,7 +34,7 @@ public @interface Col {
 	 * @return String
 	 * @on
 	 */
-	String fallback();
+	String fallback() default "";
 
 	/**
 	 * 有时可能不想用列名去匹配, 比如我确定这个字段要映射到第一列. 

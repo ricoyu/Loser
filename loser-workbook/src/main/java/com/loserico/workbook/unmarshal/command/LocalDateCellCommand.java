@@ -54,29 +54,12 @@ public class LocalDateCellCommand extends BaseCellCommand {
 		// ------------- Step 2 Cell内容是字符串类型的情况 -------------
 		if (cellTypeEnum == CellType.STRING) {
 			Function<Cell, LocalDate> functionConvertor = (c) -> {
-				String cellValue = c.getStringCellValue();
-				if (cellValue == null || "".equals(cellValue.trim())) {
-					return null;
-				}
-
-				if ("\"\"".equals(cellValue)) {
-					return null;
-				}
-
-				Matcher matcher = PATTERN_QUOTE.matcher(cellValue);
-				if (matcher.matches()) {
-					cellValue = matcher.group(1).trim();
-					if (cellValue == null || "".equals(cellValue.trim())) {
-						return null;
-					}
-
-					return DateUtils.toLocalDate(cellValue.trim());
-				}
+				String cellValue = str(c);
 
 				return DateUtils.toLocalDate(cellValue.trim());
 			};
 			LocalDate localDate = functionConvertor.apply(cell);
-			ReflectionUtils.setField(field, functionConvertor, localDate);
+			ReflectionUtils.setField(field, pojo, localDate);
 			atomicReference.compareAndSet(null, functionConvertor);
 			return;
 		}
@@ -85,9 +68,9 @@ public class LocalDateCellCommand extends BaseCellCommand {
 		LocalDate localDate = DateUtils.toLocalDate(cell.getDateCellValue());
 		if (localDate != null) {
 			Function<Cell, LocalDate> functionConvertor = (c) -> {
-				return DateUtils.toLocalDate(cell.getDateCellValue());
+				return DateUtils.toLocalDate(c.getDateCellValue());
 			};
-			ReflectionUtils.setField(field, functionConvertor, localDate);
+			ReflectionUtils.setField(field, pojo, localDate);
 			atomicReference.compareAndSet(null, functionConvertor);
 			return;
 		}
@@ -105,7 +88,7 @@ public class LocalDateCellCommand extends BaseCellCommand {
 				 * 所以取值就得重新调用: String.valueOf((long) cell.getNumericCellValue())
 				 */
 				Function<Cell, LocalDate> functionConvertor = (c) -> {
-					return LocalDate.parse(String.valueOf((long) cell.getNumericCellValue()), FMT_DATE_CONCISE);
+					return LocalDate.parse(String.valueOf((long) c.getNumericCellValue()), FMT_DATE_CONCISE);
 				};
 				atomicReference.compareAndSet(null, functionConvertor);
 				localDate = functionConvertor.apply(cell);

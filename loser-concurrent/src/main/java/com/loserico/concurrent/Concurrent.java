@@ -1,6 +1,7 @@
 package com.loserico.concurrent;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -11,6 +12,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+
+import org.omg.CORBA.TIMEOUT;
 
 import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.loserico.concurrent.exception.ConcurrentOperationException;
@@ -63,7 +66,7 @@ public final class Concurrent {
 	public static ExecutorService ncoreFixedThreadPool() {
 		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(NCPUS + 1, NCPUS + 1,
 				0L, TimeUnit.MILLISECONDS,
-				new LinkedBlockingQueue<Runnable>(2600),
+				new LinkedBlockingQueue<Runnable>(),
 				defaultThreadFactory);
 		threadPoolExecutor.prestartAllCoreThreads();
 		return threadPoolExecutor;
@@ -79,7 +82,7 @@ public final class Concurrent {
 	public static ExecutorService ioConcentratedFixedThreadPool() {
 		ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(2 * NCPUS + 1, 2 * NCPUS + 1,
 				0L, TimeUnit.MILLISECONDS,
-				new LinkedBlockingQueue<Runnable>(2600),
+				new LinkedBlockingQueue<Runnable>(),
 				defaultThreadFactory);
 		threadPoolExecutor.prestartAllCoreThreads();
 		return threadPoolExecutor;
@@ -135,6 +138,17 @@ public final class Concurrent {
 		}
 		log.info("提交第{}个任务", set.size() + 1);
 		set.add(completableFuture);
+	}
+	
+	public static void awaitTermination(ExecutorService executorService, long timeout, TimeUnit timeUnit) {
+		Objects.requireNonNull(executorService);
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(timeout, timeUnit);
+		} catch (InterruptedException e) {
+			log.error("", e);
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**

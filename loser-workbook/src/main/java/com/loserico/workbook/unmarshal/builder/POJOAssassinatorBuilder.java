@@ -1,7 +1,9 @@
 package com.loserico.workbook.unmarshal.builder;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -9,10 +11,17 @@ import java.util.Map.Entry;
 import java.util.Objects;
 
 import com.loserico.workbook.annotation.Col;
+import com.loserico.workbook.exception.NoCellCommandException;
 import com.loserico.workbook.unmarshal.assassinator.POJOAssassinator;
+import com.loserico.workbook.unmarshal.command.BigDecimalCellCommand;
+import com.loserico.workbook.unmarshal.command.EnumCellCommand;
 import com.loserico.workbook.unmarshal.command.LocalDateCellCommand;
+import com.loserico.workbook.unmarshal.command.LocalDateTimeCellCommand;
+import com.loserico.workbook.unmarshal.command.LongCellCommand;
 import com.loserico.workbook.unmarshal.command.StringCellCommand;
 import com.loserico.workbook.utils.ReflectionUtils;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 负责构造 POJOAssassinator 对象, 但是该对象还没有完成初始化
@@ -27,6 +36,7 @@ import com.loserico.workbook.utils.ReflectionUtils;
  * @version 1.0
  * @on
  */
+@Slf4j
 public class POJOAssassinatorBuilder {
 
 	public static List<POJOAssassinator> build(Class<?> pojoType) {
@@ -37,6 +47,10 @@ public class POJOAssassinatorBuilder {
 		for (Entry<Field, Col> entry : fieldAnnotationMap.entrySet()) {
 			Field field = entry.getKey();
 			Col annotation = entry.getValue();
+			if (annotation == null) {
+				log.warn("字段[{}]没有标注@Col(name = 'XX'), 忽略该字段", field.getName());
+				continue;
+			}
 			POJOAssassinator assassinator = new POJOAssassinator();
 			assassinator.setColumnName(annotation.name());
 			assassinator.setCellIndex(annotation.index());
@@ -48,9 +62,28 @@ public class POJOAssassinatorBuilder {
 				assassinator.setCellCommand(new StringCellCommand(field));
 				continue;
 			}
+			if (fieldType.isAssignableFrom(Long.class)) {
+				assassinator.setCellCommand(new LongCellCommand(field));
+				continue;
+			}
 			if (fieldType.isAssignableFrom(LocalDate.class)) {
 				assassinator.setCellCommand(new LocalDateCellCommand(field));
 				continue;
+			}
+			if (fieldType.isAssignableFrom(LocalDateTime.class)) {
+				assassinator.setCellCommand(new LocalDateTimeCellCommand(field));
+				continue;
+			}
+			if (fieldType.isAssignableFrom(BigDecimal.class)) {
+				assassinator.setCellCommand(new BigDecimalCellCommand(field));
+				continue;
+			}
+			if (fieldType.isEnum()) {
+				assassinator.setCellCommand(new EnumCellCommand(field));
+				continue;
+			}
+			if (assassinator.getCellCommand() == null) {
+				throw new NoCellCommandException("No CellCommand found for type " + fieldType.getName());
 			}
 		}
 

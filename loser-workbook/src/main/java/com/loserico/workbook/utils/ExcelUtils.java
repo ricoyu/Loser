@@ -52,6 +52,7 @@ import com.loserico.workbook.exception.CellNotFoundException;
 import com.loserico.workbook.exception.ExcelOutputStreamWriteException;
 import com.loserico.workbook.exception.InvalidVarTemplateException;
 import com.loserico.workbook.exception.RowNotFoundException;
+import com.loserico.workbook.exception.SheetIndexInvalidException;
 import com.loserico.workbook.exception.SheetNotExistException;
 import com.loserico.workbook.exception.UnrecognizedWorkbookException;
 import com.loserico.workbook.exception.WorkbookCreationException;
@@ -180,7 +181,7 @@ public class ExcelUtils {
 	}
 
 	/**
-	 * 返回指定名字的Sheet, 如果该sheetName不存在, 返回第0个sheet页
+	 * 返回指定名字的Sheet, 如果该sheetName不存在, 返回null
 	 * 
 	 * @param workbook
 	 * @param sheetName
@@ -190,12 +191,35 @@ public class ExcelUtils {
 		Objects.requireNonNull(workbook, "Workbook 对象不能为null");
 		Objects.requireNonNull(sheetName, "sheetName不能为null");
 		Sheet sheet = workbook.getSheet(sheetName);
+		return sheet;
+	}
+	
+	/**
+	 * 返回指定名字的Sheet, 如果不存在则返回指定index的Sheet
+	 * @param workbook
+	 * @param sheetName
+	 * @param index
+	 * @return Sheet
+	 */
+	public static Sheet getSheetByNameOrIndex(Workbook workbook, String sheetName, int index) {
+		Objects.requireNonNull(workbook, "Workbook 对象不能为null");
+		Objects.requireNonNull(sheetName, "sheetName不能为null");
+		Sheet sheet = workbook.getSheet(sheetName);
 		if (sheet == null) {
+			if (index < 0) {
+				logger.warn("Sheet index {} invalid, should >=0", index);
+				return null;
+			}
 			return workbook.getSheetAt(0);
 		}
 		return sheet;
 	}
 
+	public static Sheet getSheet(Workbook workbook, int sheetIndex) {
+		Objects.requireNonNull(workbook, "Workbook 对象不能为null");
+		Sheet sheet = workbook.getSheetAt(sheetIndex);
+		return sheet;
+	}
 	/**
 	 * csv 转 xls 格式
 	 * 
@@ -244,7 +268,7 @@ public class ExcelUtils {
 		}
 		return row;
 	}
-
+	
 	/**
 	 * 写入到指定sheetName的Sheet页面, sheetName不存在则写入到Sheet1
 	 * <br/>

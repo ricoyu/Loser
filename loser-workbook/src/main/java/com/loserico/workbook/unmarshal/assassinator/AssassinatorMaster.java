@@ -4,16 +4,20 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
+import com.loserico.commons.utils.DateUtils;
 import com.loserico.commons.utils.StringUtils;
 import com.loserico.workbook.exception.AssassinationTrainFailedException;
 import com.loserico.workbook.exception.RowNotFoundException;
 import com.loserico.workbook.exception.SheetNotExistException;
+import com.loserico.workbook.unmarshal.iterator.RowIterator;
 import com.loserico.workbook.utils.ExcelUtils;
 
 /**
@@ -28,20 +32,27 @@ import com.loserico.workbook.utils.ExcelUtils;
  * @on
  */
 public final class AssassinatorMaster {
-
+	
+	// 有些cell里面的值是双引号括起来的, 这里要去掉双引号
+	protected static Pattern PATTERN_QUOTE = Pattern.compile("\"(.+)\"");
+	
 	/**
-	 * Excel中标题栏的行号, 默认0
+	 * Excel中标题栏的行号, csv从1开始计数
 	 */
-	private int titleRowIndex = 0;
+	private int titleRowIndex = -1;
 
 	/**
 	 * 要读取的sheet页的名字
 	 */
 	private String sheetName;
+	
+	/** 指定的sheetName 不存在时按指定的sheetIndex读取*/
+	private int fallbackSheetIndex = -1;
 
 	private AssassinatorMaster(Builder builder) {
 		this.titleRowIndex = builder.titleRowIndex;
 		this.sheetName = builder.sheetName;
+		this.fallbackSheetIndex = builder.fallbackSheetIndex;
 	}
 
 	public static final class Builder {
@@ -59,6 +70,8 @@ public final class AssassinatorMaster {
 		 */
 		private String sheetName;
 
+		private int fallbackSheetIndex = -1;
+
 		public Builder titleRowIndex(int titleRowIndex) {
 			this.titleRowIndex = titleRowIndex;
 			return this;
@@ -66,6 +79,11 @@ public final class AssassinatorMaster {
 
 		public Builder sheetName(String sheetName) {
 			this.sheetName = sheetName;
+			return this;
+		}
+		
+		public Builder fallbackSheetIndex(int fallbackSheetIndex) {
+			this.fallbackSheetIndex = fallbackSheetIndex;
 			return this;
 		}
 
@@ -85,17 +103,17 @@ public final class AssassinatorMaster {
 	 * @param workbook
 	 * @return 标题行的行号, -1表示没有找到标题行
 	 */
-	public int train(List<POJOAssassinator> assassinators, Workbook workbook) {
+	public RowIterator train(List<POJOAssassinator> assassinators, Workbook workbook) {
 		/*
 		 * 如果所有POJOAssassinator的cellIndex都不是-1
 		 * 表示每个POJOAssassinator都找到了自己对应的是Sheet的哪一列, 所以不需要再训练了
 		 */
-		long count = assassinators.stream().filter(a -> a.getCellIndex() == -1).count();
+		/*long count = assassinators.stream().filter(a -> a.getCellIndex() == -1).count();
 		if (count == 0) {
-			return -1;
-		}
+			return new RowIterator(null, -1);
+		}*/
 
-		Sheet sheet = ExcelUtils.getSheet(workbook, sheetName);
+		Sheet sheet = ExcelUtils.getSheetByNameOrIndex(workbook, sheetName, fallbackSheetIndex);
 		if (sheet == null) {
 			throw new SheetNotExistException("No sheet for name[" + sheetName + "]");
 		}
@@ -126,6 +144,7 @@ public final class AssassinatorMaster {
 			throw new RowNotFoundException("找不到标题行");
 		}
 
+		RowIterator<Row> rowIterator = new RowIterator<>(sheet, titleRowIndex + 1);
 		/*
 		 * 从这一行开始, 第0列是有值的, 那么认为这行就是标题行
 		 * 从这行的第0列开始一致到最后一列, 取每一列的字符串值 title, 
@@ -134,24 +153,25 @@ public final class AssassinatorMaster {
 		 */
 		int beginIndex = titleRow.getFirstCellNum();
 		int lastColumnIndex = titleRow.getLastCellNum();
-		for (int index = beginIndex; index <= lastColumnIndex; index++) {
-			Cell cell = titleRow.getCell(index);
-			String title = titleValue(cell);
 
+		for (POJOAssassinator assassinator : assassinators) {
 			/*
-			 * 这一列没有值的话就认为中间空了一列, 继续
+			 * cellIndex != -1 有两种可能 
+			 * @Col(index = 2) 在注解里已经显式指定了这个字段对应Excel中的哪一列
+			 * 第二种可能就是已经在Excel中找到匹配的列了
 			 */
-			if (title == null || "".equals(title)) {
+			if (assassinator.getCellIndex() != -1) {
 				continue;
 			}
+			
+			for (int index = beginIndex; index <= lastColumnIndex; index++) {
+				Cell cell = titleRow.getCell(index);
+				String title = titleValue(cell);
 
-			for (POJOAssassinator assassinator : assassinators) {
 				/*
-				 * cellIndex != -1 有两种可能 
-				 * @Col(index = 2) 在注解里已经显式指定了这个字段对应Excel中的哪一列
-				 * 第二种可能就是已经在Excel中找到匹配的列了
+				 * 这一列没有值的话就认为中间空了一列, 继续
 				 */
-				if (assassinator.getCellIndex() != -1) {
+				if (title == null || "".equals(title)) {
 					continue;
 				}
 				if (title.equals(assassinator.getColumnName()) || title.equals(assassinator.getFallbackName())) {
@@ -163,10 +183,10 @@ public final class AssassinatorMaster {
 		}
 
 		/*
-		 * 如果标题行的每一列都尝试过一遍, 但是还有POJOAssassinator没有找到要刺杀的列(没有完成训练), 那么就得抛个异常玩玩了, 这个训练有点失败呀
+		 * 如果标题行的每一列都尝试过一遍, 但是还有POJOAssassinator没有找到对应的列(没有完成训练), 那么就得抛个异常玩玩了, 这个训练有点失败呀
 		 */
 		long uncompleteCount = assassinators.stream().filter(a -> a.getCellIndex() == -1).count();
-		if (uncompleteCount != -1L) {
+		if (uncompleteCount != 0) {
 			/*
 			 * 为了记log, 表示POJO中有哪些字段在Excel中没有找到对应的列
 			 */
@@ -178,14 +198,27 @@ public final class AssassinatorMaster {
 			throw new AssassinationTrainFailedException(StringUtils.joinWith(", ", missingColumns));
 		}
 
-		return titleRowIndex;
+		int totalRowCount = sheet.getLastRowNum() - titleRowIndex;
+		rowIterator.setTotalCount(totalRowCount);
+		return rowIterator;
 	}
 
 	private String titleValue(Cell cell) {
-		String title = cell.getStringCellValue();
-		if (title == null) {
+ 		String title = cell.getStringCellValue();
+		if ("\"\"".equals(title)) {
 			return null;
 		}
+		
+		Matcher matcher = PATTERN_QUOTE.matcher(title);
+		if (matcher.matches()) {
+			title = matcher.group(1).trim();
+			if (title == null || "".equals(title.trim())) {
+				return null;
+			}
+
+			return title.trim();
+		}
+		
 		return title.trim();
 	}
 	

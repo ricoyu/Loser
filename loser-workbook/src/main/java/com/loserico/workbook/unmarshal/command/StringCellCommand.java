@@ -11,6 +11,8 @@ import org.apache.poi.ss.usermodel.CellType;
 
 import com.loserico.workbook.utils.ReflectionUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 负责从Cell中读取值并设置到String类型的字段上
  * <p>
@@ -22,6 +24,7 @@ import com.loserico.workbook.utils.ReflectionUtils;
  * @version 1.0
  * @on
  */
+@Slf4j
 public class StringCellCommand extends BaseCellCommand {
 
 	private AtomicReference<Function<Cell, String>> atomicReference = new AtomicReference<>(null);
@@ -39,21 +42,9 @@ public class StringCellCommand extends BaseCellCommand {
 			}
 			return;
 		}
-
 		if (cell.getCellTypeEnum() == CellType.STRING) {
 			Function<Cell, String> convertor = (c) -> {
-				String cellValue = c.getStringCellValue();
-				if (cellValue == null || "".equals(cellValue.trim())) {
-					return null;
-				}
-				if ("\"\"".equals(cellValue)) {
-					return null;
-				}
-				Matcher matcher = PATTERN_QUOTE.matcher(cellValue);
-				if (matcher.matches()) {
-					return matcher.group(1).trim();
-				}
-				return cellValue.trim();
+				return str(c);
 			};
 			String value = convertor.apply(cell);
 			if (value != null) {

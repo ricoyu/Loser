@@ -6,7 +6,6 @@ import org.apache.poi.ss.usermodel.Row;
 import com.loserico.workbook.unmarshal.command.CellCommand;
 
 import lombok.Data;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -18,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * @author Rico Yu  ricoyu520@gmail.com
  * @version 1.0
- * @on
+ * @on 
  */
 @Slf4j
 @Data
@@ -33,11 +32,20 @@ public class POJOAssassinator {
 	/**
 	 * 如果columnName指定的名字在Excel的标题中找不到对应的列
 	 * 那么取fallbackName来匹配Excel的标题
+	 * @on
 	 */
 	private String fallbackName = null;
 	
 	public void assassinate(Row row, Object pojo) {
 		Cell cell = row.getCell(cellIndex);
+		if (cell == null) {
+			/*if (log.isInfoEnabled()) {
+				log.info("Cell object is null, skip! Row[{}], Cell[{}]",
+						row.getRowNum(),
+						cellIndex);
+			}*/
+			return;
+		}
 		cellCommand.invoke(cell, pojo);
 	}
 
