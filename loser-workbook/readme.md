@@ -9,7 +9,7 @@ Doc is TODO...
 
 # 2.Excel反序列化成POJOs
 
-入口类是 `ExcelUnmarshaller`, 你需要创建一个ExcelUnmarshaller对象, 为期指定想要反序列化的Workbook对象或者File对象, 指定要读哪个Sheet, 指定POJO class对象, 是否需要做数据校验.
+入口类是 `ExcelUnmarshaller`, 你需要创建一个ExcelUnmarshaller对象, 为其指定想要反序列化的Workbook对象或者File对象, 指定要读哪个Sheet, 指定POJO class对象, 是否需要做数据校验.
 
 本工具假设Excel中数据行之前有一行标题, 如下:
 
