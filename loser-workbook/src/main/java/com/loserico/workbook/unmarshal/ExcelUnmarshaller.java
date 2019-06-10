@@ -6,6 +6,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -161,8 +162,19 @@ public final class ExcelUnmarshaller {
 		return results;
 	}
 
-	public static Builder builder() {
-		return new Builder();
+	public static Builder builder(Workbook workbook) {
+		Objects.requireNonNull(workbook, "workbook cannot be null");
+		return new Builder(workbook);
+	}
+	
+	public static Builder builder(MultipartFile multipartFile) {
+		Objects.requireNonNull(multipartFile, "multipartFile cannot be null");
+		return new Builder(multipartFile);
+	}
+	
+	public static Builder builder(File file) {
+		Objects.requireNonNull(file, "file cannot be null");
+		return new Builder(file);
 	}
 
 	public static class Builder {
@@ -182,6 +194,18 @@ public final class ExcelUnmarshaller {
 		private Class<?> pojoType;
 
 		private boolean validate = false;
+		
+		public Builder(Workbook workbook) {
+			this.workbook = workbook;
+		}
+		
+		public Builder(MultipartFile multipartFile) {
+			this.multipartFile = multipartFile;
+		}
+		
+		public Builder(File file) {
+			this.file = file;
+		}
 
 		/**
 		 * 以File形式指定要反序列化的Excel对象, 与{@code workbook(), multipartFile()}是互斥的操作
@@ -189,7 +213,7 @@ public final class ExcelUnmarshaller {
 		 * @param file
 		 * @return Builder
 		 */
-		public Builder file(File file) {
+		/*public Builder file(File file) {
 			this.file = file;
 			if (this.workbook != null && this.file != null) {
 				throw new InvalidConfigurationException("workbook and file cannot both specified!");
@@ -198,7 +222,7 @@ public final class ExcelUnmarshaller {
 				throw new InvalidConfigurationException("multipartFile and file cannot both specified!");
 			}
 			return this;
-		}
+		}*/
 
 		/**
 		 * 以Workbook形式指定要反序列化的Excel对象, 与{@code file(), multipartFile()}是互斥的操作
@@ -206,7 +230,7 @@ public final class ExcelUnmarshaller {
 		 * @param file
 		 * @return Builder
 		 */
-		public Builder workbook(Workbook workbook) {
+		/*public Builder workbook(Workbook workbook) {
 			this.workbook = workbook;
 			if (this.workbook != null && this.file != null) {
 				throw new InvalidConfigurationException("workbook and file cannot both specified!");
@@ -215,7 +239,7 @@ public final class ExcelUnmarshaller {
 				throw new InvalidConfigurationException("workbook and multipartFile cannot both specified!");
 			}
 			return this;
-		}
+		}*/
 
 		/**
 		 * 以MultipartFile形式指定要反序列化的Excel对象, 与{@code file(), workbook()}是互斥的操作
@@ -223,7 +247,7 @@ public final class ExcelUnmarshaller {
 		 * @param file
 		 * @return Builder
 		 */		
-		public Builder multipartFile(MultipartFile multipartFile) {
+		/*public Builder multipartFile(MultipartFile multipartFile) {
 			this.multipartFile = multipartFile;
 			if (this.workbook != null && this.multipartFile != null) {
 				throw new InvalidConfigurationException("workbook and multipartFile cannot both specified!");
@@ -232,7 +256,7 @@ public final class ExcelUnmarshaller {
 				throw new InvalidConfigurationException("file and multipartFile cannot both specified!");
 			}
 			return this;
-		}
+		}*/
 
 		public Builder sheetName(String sheetName) {
 			this.sheetName = sheetName;

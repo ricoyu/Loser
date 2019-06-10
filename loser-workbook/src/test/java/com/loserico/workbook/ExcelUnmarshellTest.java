@@ -21,9 +21,7 @@ public class ExcelUnmarshellTest {
 		File file = IOUtils.readClasspathFileAsFile("excel/958395-one.csv");
 //		Workbook workbook = ExcelUtils.getWorkbook(IOUtils.readClasspathFileAsFile("excel/958395-one.csv"));
 		long begin = System.currentTimeMillis();
-		List<SettlementItem> settlementItems = ExcelUnmarshaller.builder()
-//				.workbook(workbook)
-				.file(file)
+		List<SettlementItem> settlementItems = ExcelUnmarshaller.builder(file)
 				.sheetName("992704（2018.9.4结算 ）")
 				.fallbackSheetIndex(0)
 				.pojoType(SettlementItem.class)
