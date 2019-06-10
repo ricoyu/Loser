@@ -25,7 +25,7 @@ public @interface Col {
 	 * 
 	 * @return
 	 */
-	String name();
+	String name() default "";
 
 	/**
 	 * 实际操作中经常会同样的数据, 出现多个版本的字段名. 比如某列今天叫单据号, 一段时间后改成业务单号

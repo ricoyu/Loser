@@ -12,7 +12,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 
-import com.loserico.commons.utils.StringUtils;
 import com.loserico.workbook.exception.AssassinationTrainFailedException;
 import com.loserico.workbook.exception.RowNotFoundException;
 import com.loserico.workbook.exception.SheetNotExistException;
@@ -184,7 +183,7 @@ public final class AssassinatorMaster {
 		/*
 		 * 如果标题行的每一列都尝试过一遍, 但是还有POJOAssassinator没有找到对应的列(没有完成训练), 那么就得抛个异常玩玩了, 这个训练有点失败呀
 		 */
-		long uncompleteCount = assassinators.stream().filter(a -> a.getCellIndex() == -1).count();
+		long uncompleteCount = assassinators.stream().filter(a -> a.getCellIndex() < 0).count();
 		if (uncompleteCount != 0) {
 			/*
 			 * 为了记log, 表示POJO中有哪些字段在Excel中没有找到对应的列
@@ -194,7 +193,7 @@ public final class AssassinatorMaster {
 					.map((a) -> {
 						return a.getColumnName() != null ? a.getColumnName() : a.getFallbackName();
 					}).collect(toList());
-			throw new AssassinationTrainFailedException(StringUtils.joinWith(", ", missingColumns));
+			throw new AssassinationTrainFailedException(missingColumns.toString());
 		}
 
 		int totalRowCount = sheet.getLastRowNum() - titleRowIndex;

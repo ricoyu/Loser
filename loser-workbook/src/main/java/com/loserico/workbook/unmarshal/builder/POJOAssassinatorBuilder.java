@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 import java.util.Objects;
 
 import com.loserico.workbook.annotation.Col;
+import com.loserico.workbook.exception.InvalidConfigurationException;
 import com.loserico.workbook.exception.NoCellCommandException;
 import com.loserico.workbook.unmarshal.assassinator.POJOAssassinator;
 import com.loserico.workbook.unmarshal.command.BigDecimalCellCommand;
@@ -55,9 +56,16 @@ public class POJOAssassinatorBuilder {
 				continue;
 			}
 			POJOAssassinator assassinator = new POJOAssassinator();
-			assassinator.setColumnName(annotation.name());
+			String name = annotation.name();
+			assassinator.setColumnName(name == null ? null : name.trim());
 			assassinator.setCellIndex(annotation.index());
-			assassinator.setFallbackName(annotation.fallback());
+			String fallback = annotation.fallback();
+			assassinator.setFallbackName(fallback == null ? null : fallback.trim());
+			if (isBlank(assassinator.getColumnName()) &&
+					isBlank(assassinator.getFallbackName()) &&
+					assassinator.getCellIndex() < 0) {
+				throw new InvalidConfigurationException("Either name, fallbackName, index should be specified!");
+			}
 			assassinators.add(assassinator);
 
 			Class<?> fieldType = field.getType();
@@ -103,5 +111,9 @@ public class POJOAssassinatorBuilder {
 		}
 
 		return assassinators;
+	}
+	
+	private static boolean isBlank(String s) {
+		return null == s || "".equals(s.trim());
 	}
 }

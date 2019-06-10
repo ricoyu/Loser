@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotNull;
 
 import com.loserico.workbook.annotation.Col;
 import com.loserico.workbook.enums.Ticket;
@@ -14,10 +13,10 @@ import lombok.Data;
 @Data
 public class SettlementItem {
 
-	@Col(name = "结算单号")
+	@Col(index = 0)
 	private String settlementId; // JD 京东结算单号
 
-	@Col(name = "供应商名称")
+	@Col(index = 1)
 	private String supplier; // 供应商名称
 
 	@Col(name = "供应商简码")
@@ -58,7 +57,7 @@ public class SettlementItem {
 	private BigDecimal unitPrice; // 单价
 
 	@Col(name = "数量")
-	@Min(value = 2, message = "数量最少2个起购")
+//	@Min(value = 2, message = "数量最少2个起购")
 	private Long qty; // 数量
 
 	@Col(name = "金额")

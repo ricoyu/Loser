@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -58,6 +59,9 @@ public class LocalDateTimeCellCommand extends BaseCellCommand {
 		if (cellTypeEnum == CellType.STRING) {
 			Function<Cell, LocalDateTime> functionConvertor = (c) -> {
 				String cellValue = str(c);
+				if (cellValue == null ||"".equals(cellValue)) {
+					return null;
+				}
 				return DateUtils.toLocalDateTime(cellValue.trim());
 			};
 			atomicReference.compareAndSet(null, functionConvertor);
@@ -71,7 +75,11 @@ public class LocalDateTimeCellCommand extends BaseCellCommand {
 
 		// ------------- Step 3 假设Cell内容是Date类型的 -------------
 		Function<Cell, LocalDateTime> functionConvertor = (c) -> {
-			return DateUtils.toLocalDateTime(c.getDateCellValue());
+			Date dateCellValue = c.getDateCellValue();
+			if (dateCellValue == null) {
+				return null;
+			}
+			return DateUtils.toLocalDateTime(dateCellValue);
 		};
 		LocalDateTime localDateTime = functionConvertor.apply(cell);
 		atomicReference.compareAndSet(null, functionConvertor);

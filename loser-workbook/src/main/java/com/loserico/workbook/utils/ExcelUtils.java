@@ -50,6 +50,7 @@ import com.loserico.commons.utils.StringUtils;
 import com.loserico.io.utils.IOUtils;
 import com.loserico.workbook.exception.CellNotFoundException;
 import com.loserico.workbook.exception.ExcelOutputStreamWriteException;
+import com.loserico.workbook.exception.InvalidConfigurationException;
 import com.loserico.workbook.exception.InvalidVarTemplateException;
 import com.loserico.workbook.exception.RowNotFoundException;
 import com.loserico.workbook.exception.SheetIndexInvalidException;
@@ -203,7 +204,9 @@ public class ExcelUtils {
 	 */
 	public static Sheet getSheetByNameOrIndex(Workbook workbook, String sheetName, int index) {
 		Objects.requireNonNull(workbook, "Workbook 对象不能为null");
-		Objects.requireNonNull(sheetName, "sheetName不能为null");
+		if (sheetName == null && index < 0) {
+			throw new InvalidConfigurationException("SheetName and index should specify atleast one");
+		}
 		Sheet sheet = workbook.getSheet(sheetName);
 		if (sheet == null) {
 			if (index < 0) {
