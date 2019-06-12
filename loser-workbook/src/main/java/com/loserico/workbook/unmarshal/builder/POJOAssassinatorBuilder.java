@@ -47,7 +47,7 @@ public class POJOAssassinatorBuilder {
 		Objects.requireNonNull(pojoType);
 		Map<Field, Col> fieldAnnotationMap = ReflectionUtils.annotatedField(pojoType, Col.class);
 
-		List<POJOAssassinator> assassinators = new ArrayList<>();
+		List<POJOAssassinator> assassinators = new ArrayList<>(fieldAnnotationMap.size());
 		for (Entry<Field, Col> entry : fieldAnnotationMap.entrySet()) {
 			Field field = entry.getKey();
 			Col annotation = entry.getValue();

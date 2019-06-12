@@ -100,7 +100,6 @@ public final class ExcelUnmarshaller {
 				throw new WorkbookCreationException(e);
 			}
 		}
-		List<T> results = new ArrayList<>();
 		AssassinatorMaster assassinatorMaster = AssassinatorMaster.builder()
 				.sheetName(sheetName)
 				.fallbackSheetIndex(fallbackSheetIndex)
@@ -108,7 +107,10 @@ public final class ExcelUnmarshaller {
 				.build();
 		RowIterator<Row> iterator = assassinatorMaster.train(assassinators, workbook);
 
-		if (iterator.getTotalCount() < 10000) {
+		int totalCount = iterator.getTotalCount();
+		List<T> results = new ArrayList<>(totalCount); //用totalCount作为ArrayList的初始容量, 消除扩容带来的性能开销
+		
+		if (totalCount < 10000) {
 			while (iterator.hasNext()) {
 				Row row = iterator.next();
 				T instance;
@@ -206,57 +208,6 @@ public final class ExcelUnmarshaller {
 		public Builder(File file) {
 			this.file = file;
 		}
-
-		/**
-		 * 以File形式指定要反序列化的Excel对象, 与{@code workbook(), multipartFile()}是互斥的操作
-		 * 
-		 * @param file
-		 * @return Builder
-		 */
-		/*public Builder file(File file) {
-			this.file = file;
-			if (this.workbook != null && this.file != null) {
-				throw new InvalidConfigurationException("workbook and file cannot both specified!");
-			}
-			if (this.multipartFile != null && this.file != null) {
-				throw new InvalidConfigurationException("multipartFile and file cannot both specified!");
-			}
-			return this;
-		}*/
-
-		/**
-		 * 以Workbook形式指定要反序列化的Excel对象, 与{@code file(), multipartFile()}是互斥的操作
-		 * 
-		 * @param file
-		 * @return Builder
-		 */
-		/*public Builder workbook(Workbook workbook) {
-			this.workbook = workbook;
-			if (this.workbook != null && this.file != null) {
-				throw new InvalidConfigurationException("workbook and file cannot both specified!");
-			}
-			if (this.workbook != null && this.multipartFile != null) {
-				throw new InvalidConfigurationException("workbook and multipartFile cannot both specified!");
-			}
-			return this;
-		}*/
-
-		/**
-		 * 以MultipartFile形式指定要反序列化的Excel对象, 与{@code file(), workbook()}是互斥的操作
-		 * 
-		 * @param file
-		 * @return Builder
-		 */		
-		/*public Builder multipartFile(MultipartFile multipartFile) {
-			this.multipartFile = multipartFile;
-			if (this.workbook != null && this.multipartFile != null) {
-				throw new InvalidConfigurationException("workbook and multipartFile cannot both specified!");
-			}
-			if (this.file != null && this.multipartFile != null) {
-				throw new InvalidConfigurationException("file and multipartFile cannot both specified!");
-			}
-			return this;
-		}*/
 
 		public Builder sheetName(String sheetName) {
 			this.sheetName = sheetName;

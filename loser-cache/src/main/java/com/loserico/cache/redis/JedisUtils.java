@@ -2352,6 +2352,7 @@ public final class JedisUtils {
 		 * @on
 		 */
 		public static String auth(String token) {
+			Objects.requireNonNull(token, "token cannot be null");
 			Jedis jedis = jedis();
 			try {
 				String authSha = shaHashs.computeIfAbsent("spring-security-auth.lua", x -> {
@@ -2365,6 +2366,36 @@ public final class JedisUtils {
 						toBytes(token),
 						toBytes(autoRefresh));
 				return JedisUtils.toString(result);
+			} finally {
+				if (jedis != null) {
+					jedis.close();
+				}
+			}
+		}
+		
+		/**
+		 * 返回0表示这个username没有登录
+		 * 返回-1表示usernameTtl检查的时候发现这个用户登录已经过期, 同时会清理其登录信息
+		 * 返回这个username对应的token剩余多少秒过期
+		 * @param username
+		 * @return
+		 * @on
+		 */
+		public static Long usernameTtl(String username) {
+			Objects.requireNonNull(username, "username cannot be null");
+			Jedis jedis = jedis();
+			try {
+				String authSha = shaHashs.computeIfAbsent("spring-security-auth.lua", x -> {
+					logger.info("Load script {}", "spring-security-auth.lua");
+					return jedis.scriptLoad(IOUtils.readClassPathFile("/lua-scripts/spring-security-auth.lua"));
+				});
+
+				Long ttlInSeconds = (Long) jedis.evalsha(toBytes(authSha),
+						0,
+						toBytes("usernameTtl"),
+						toBytes(username));
+				logger.info("{} remain in {} seconds to expire", username, ttlInSeconds);
+				return ttlInSeconds;
 			} finally {
 				if (jedis != null) {
 					jedis.close();

@@ -12,19 +12,24 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.fluent.Form;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 
 import com.loserico.commons.jsonpath.JsonPathUtils;
+import com.loserico.io.utils.IOUtils;
+import com.mysql.fabric.xmlrpc.base.Data;
 
 /**
  * https://www.baeldung.com/httpclient-post-http-request
@@ -39,11 +44,12 @@ import com.loserico.commons.jsonpath.JsonPathUtils;
  * @on
  */
 public class HttpClientTest {
-	
+
 	@Test
 	public void testAddRefererHeader() throws ClientProtocolException, IOException {
 		CloseableHttpClient client = HttpClients.createDefault();
-		HttpGet httpGet = new HttpGet("https://deepdata.b0.upaiyun.com/head-icon/student/fz8aIMR7m871i7HA20190401131246.png!compress");
+		HttpGet httpGet = new HttpGet(
+				"https://deepdata.b0.upaiyun.com/head-icon/student/fz8aIMR7m871i7HA20190401131246.png!compress");
 		httpGet.addHeader("Referer", "https://nascans.kiddysense.sg/");
 		CloseableHttpResponse response = client.execute(httpGet);
 		System.out.println(response);
@@ -69,7 +75,8 @@ public class HttpClientTest {
 		Header encodingHeader = entity.getContentEncoding();
 
 		// you need to know the encoding to parse correctly
-		Charset encoding = encodingHeader == null ? StandardCharsets.UTF_8 : Charsets.toCharset(encodingHeader.getValue());
+		Charset encoding = encodingHeader == null ? StandardCharsets.UTF_8
+				: Charsets.toCharset(encodingHeader.getValue());
 
 		/*
 		 * {"Birthday":"9999-12-31","Icon":
@@ -110,9 +117,10 @@ public class HttpClientTest {
 		Header encodingHeader = entity.getContentEncoding();
 
 		// you need to know the encoding to parse correctly
-		Charset encoding = encodingHeader == null ? StandardCharsets.UTF_8 : Charsets.toCharset(encodingHeader.getValue());
+		Charset encoding = encodingHeader == null ? StandardCharsets.UTF_8
+				: Charsets.toCharset(encodingHeader.getValue());
 		String json = EntityUtils.toString(entity, encoding);
-		if (statusCode != 200 ) {
+		if (statusCode != 200) {
 			boolean hasError = JsonPathUtils.ifExists(json, "Errors");
 			if (hasError) {
 				String errorCode = JsonPathUtils.readNode(json, "$.Errors[0].Code");
@@ -120,8 +128,35 @@ public class HttpClientTest {
 					System.out.println("捕捉到登录密码错误行为");
 				}
 			} else {
-				
+
 			}
 		}
+	}
+
+	@Test
+	public void testSendWithGBK() throws ClientProtocolException, IOException {
+		CloseableHttpClient client = HttpClients.createDefault();
+		HttpPost httpPost = new HttpPost(
+				"https://pd-erp-t2.noahgrouptest.com/service/IHttpServletAdaptorimpl?tdd=tdd&tddtp=material&token=07a81a68-c60c-4ee4-83dc-25aa51a51497");
+		StringEntity entity;
+		entity = new StringEntity(IOUtils.readClassPathFile("data.json"), "GBK");
+		entity.setContentEncoding("GBK");
+		entity.setContentType("application/json");
+		httpPost.setEntity(entity);
+		CloseableHttpResponse response = client.execute(httpPost);
+
+		System.out.println("Status Code:" + response.getStatusLine().getStatusCode());
+//		assertThat(response.getStatusLine().getStatusCode(), equalTo(200));
+
+		HttpEntity responseEntity = response.getEntity();
+		Header encodingHeader = responseEntity.getContentEncoding();
+
+		// you need to know the encoding to parse correctly
+		Charset encoding = encodingHeader == null ? StandardCharsets.UTF_8
+				: Charsets.toCharset(encodingHeader.getValue());
+		// use org.apache.http.util.EntityUtils to read json as string
+		String json = EntityUtils.toString(responseEntity, encoding);
+		System.out.println(json);
+		client.close();
 	}
 }

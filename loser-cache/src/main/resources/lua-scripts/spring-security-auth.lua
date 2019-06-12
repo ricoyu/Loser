@@ -180,6 +180,31 @@ local clearExpired = function()
 end
 
 --[[
+  返回0表示这个username没有登录
+  返回-1表示usernameTtl检查的时候发现这个用户登录已经过期, 同时会清理其登录信息
+  返回这个username对应的token剩余多少秒过期
+]]--
+local usernameTtl = function(username) 
+  local token = redis.call("HGET", AUTH_USERNAME_TOKEN_HASH, username)
+  if not token then
+    return 0
+  end
+  
+  local expireAt = redis.call("ZSCORE", AUTH_TOKEN_TTL_ZSET, token) -- 毫秒数
+  if not expireAt then 
+    return -1
+  end
+  
+  local ttl = expireAt / 1000 - redis.call("TIME")[1]
+  if ttl <=0 then
+    clearExpired()
+    return -1
+  end
+  
+  return ttl
+end
+
+--[[
     3.验证token是否存在, 是否过期
     - 根据提供的token从auth:token:username中取username, 取不到则验证失败
     - 返回username
@@ -226,4 +251,7 @@ elseif operate == OPERATE_CLEAR_EXPIRED then
 elseif operate == OPERATE_IS_LOGINED then
   local username = ARGV[2]
   return isLogined(username)
+elseif operate == "usernameTtl" then
+  local username = ARGV[2]
+  return usernameTtl(username)
 end
