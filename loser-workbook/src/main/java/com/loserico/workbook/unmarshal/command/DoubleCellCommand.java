@@ -11,6 +11,9 @@ import org.apache.poi.ss.usermodel.CellType;
 
 import com.loserico.workbook.utils.ReflectionUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class DoubleCellCommand extends BaseCellCommand {
 
 	private static Pattern moneyDoublePattern = Pattern.compile("\\$(.+)");
@@ -23,11 +26,18 @@ public class DoubleCellCommand extends BaseCellCommand {
 
 	@Override
 	public void invoke(Cell cell, Object pojo) {
-		if (reference.get() != null) {
-			Double doubleValue = reference.get().apply(cell);
-			if (doubleValue != null) {
-				ReflectionUtils.setField(field, pojo, doubleValue);
-				return;
+		Function<Cell, Double> func = reference.get();
+		if (func != null) {
+			Double doubleValue = null;
+			try {
+				doubleValue = func.apply(cell);
+				if (doubleValue != null) {
+					ReflectionUtils.setField(field, pojo, doubleValue);
+					return;
+				}
+			} catch (Exception e) {
+				log.error("这是同一列出现了不同的数据格式吗?, Row[{}], Column[{}]" + e.getMessage(), cell.getRowIndex(), cell.getColumnIndex());
+				reference.compareAndSet(func, null);
 			}
 		}
 

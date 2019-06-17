@@ -35,12 +35,23 @@ public class StringCellCommand extends BaseCellCommand {
 
 	@Override
 	public void invoke(Cell cell, Object pojo) {
-		if (atomicReference.get() != null) {
-			String str = atomicReference.get().apply(cell);
-			if (str != null) {
-				ReflectionUtils.setField(this.field, pojo, str);
+		Function<Cell, String> func = atomicReference.get();
+		if (func != null) {
+			String str = null;
+			try {
+				str = func.apply(cell);
+				if (str != null) {
+					ReflectionUtils.setField(this.field, pojo, str);
+				}
+				return;
+			} catch (Exception e) {
+				/*
+				 * 在Excel中的同一列的不同行出现不同的数据格式时会抛异常
+				 * 重新构造Convertor
+				 */
+				log.error("这是同一列出现了不同的数据格式吗?, Row[{}], Column[{}]" + e.getMessage(), cell.getRowIndex(), cell.getColumnIndex());
+				atomicReference.compareAndSet(func, null);
 			}
-			return;
 		}
 		if (cell.getCellTypeEnum() == CellType.STRING) {
 			Function<Cell, String> convertor = (c) -> {
@@ -60,6 +71,7 @@ public class StringCellCommand extends BaseCellCommand {
 			};
 
 			String value = convertor.apply(cell);
+			atomicReference.compareAndSet(null, convertor);
 			if (value != null) {
 				ReflectionUtils.setField(field, pojo, value);
 				return;

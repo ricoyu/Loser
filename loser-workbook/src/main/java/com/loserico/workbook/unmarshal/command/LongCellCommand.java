@@ -9,9 +9,12 @@ import org.apache.poi.ss.usermodel.CellType;
 
 import com.loserico.workbook.utils.ReflectionUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class LongCellCommand extends BaseCellCommand {
 	
-	private AtomicReference<Function<Cell, Long>> reference = new AtomicReference<Function<Cell,Long>>(null);
+	private AtomicReference<Function<Cell, Long>> atomicReference = new AtomicReference<Function<Cell,Long>>(null);
 	
 	public LongCellCommand(Field field) {
 		super(field);
@@ -19,17 +22,24 @@ public class LongCellCommand extends BaseCellCommand {
 
 	@Override
 	public void invoke(Cell cell, Object pojo) {
-		if (reference.get() != null) {
-			Long longValue = reference.get().apply(cell);
-			if (longValue != null) {
-				ReflectionUtils.setField(field, pojo, longValue);
+		Function<Cell, Long> func = atomicReference.get();
+		if (func != null) {
+			Long longValue = null;
+			try {
+				longValue = func.apply(cell);
+				if (longValue != null) {
+					ReflectionUtils.setField(field, pojo, longValue);
+				}
+				return;
+			} catch (Exception e) {
+				log.error("这是同一列出现了不同的数据格式吗?, Row[{}], Column[{}]" + e.getMessage(), cell.getRowIndex(), cell.getColumnIndex());
+				atomicReference.compareAndSet(func, null);
 			}
-			return;
 		}
 		
 		if (cell.getCellTypeEnum() == CellType.NUMERIC || cell.getCellTypeEnum() == CellType.FORMULA) {
 			Function<Cell, Long> convertor = (c) -> (long) c.getNumericCellValue();
-			reference.compareAndSet(null, convertor);
+			atomicReference.compareAndSet(null, convertor);
 			
 			Long longValue = convertor.apply(cell);
 			if (longValue != null) {
@@ -50,6 +60,7 @@ public class LongCellCommand extends BaseCellCommand {
 		if (longValue != null) {
 			ReflectionUtils.setField(field, pojo, longValue);
 		}
+		atomicReference.compareAndSet(null, convertor);
 	}
 
 }

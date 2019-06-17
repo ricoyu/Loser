@@ -32,7 +32,6 @@ public @interface Col {
 	 * fallback()的作用就是在找不到name()指定的列名时, 转而去找fallback()指定的列
 	 * 
 	 * @return String
-	 * @on
 	 */
 	String fallback() default "";
 
@@ -41,6 +40,7 @@ public @interface Col {
 	 * 如果指定了index, 那么name和fallback就忽略了
 	 * 
 	 * @return
+	 * @on
 	 */
 	int index() default -1;
 }

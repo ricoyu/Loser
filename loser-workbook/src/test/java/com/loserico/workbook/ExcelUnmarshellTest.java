@@ -6,6 +6,7 @@ import java.util.List;
 import org.junit.Test;
 
 import com.loserico.io.utils.IOUtils;
+import com.loserico.workbook.pojo.FaPiao;
 import com.loserico.workbook.pojo.SettlementItem;
 import com.loserico.workbook.unmarshal.ExcelUnmarshaller;
 
@@ -30,5 +31,20 @@ public class ExcelUnmarshellTest {
 		}
 //		System.out.println(toJson(settlementItems));
 	}
-	
+
+	@Test
+	public void testUnmarshall2() throws Exception {
+		Class.forName("com.loserico.commons.utils.DateUtils");
+		File file = IOUtils.readClasspathFileAsFile("excel/gys-apple.xls");
+		long begin = System.currentTimeMillis();
+		List<FaPiao> settlementItems = ExcelUnmarshaller.builder(file)
+				.sheetName("Sheet1")
+				.fallbackSheetIndex(0)
+				.pojoType(FaPiao.class)
+				.build()
+				.unmarshall();
+		long end = System.currentTimeMillis();
+		System.out.println("Total row : " + settlementItems.size() + ", Cost " + (end - begin) + " miliseconds");
+	}
+
 }

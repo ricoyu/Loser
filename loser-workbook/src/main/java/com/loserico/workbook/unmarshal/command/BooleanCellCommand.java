@@ -9,6 +9,8 @@ import org.apache.poi.ss.usermodel.CellType;
 
 import com.loserico.workbook.utils.ReflectionUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Cell是布尔类型的, 直接从Cell获取相应值
  * Cell是字符串类型, "TRUE", "true", "Y", "Yes", "1" --> true
@@ -25,9 +27,10 @@ import com.loserico.workbook.utils.ReflectionUtils;
  * @version 1.0
  * @on
  */
+@Slf4j
 public class BooleanCellCommand extends BaseCellCommand {
 	
-	private AtomicReference<Function<Cell, Boolean>> reference = new AtomicReference<Function<Cell,Boolean>>(null);
+	private AtomicReference<Function<Cell, Boolean>> atomicReference = new AtomicReference<Function<Cell,Boolean>>(null);
 
 	public BooleanCellCommand(Field field) {
 		super(field);
@@ -35,16 +38,24 @@ public class BooleanCellCommand extends BaseCellCommand {
 
 	@Override
 	public void invoke(Cell cell, Object pojo) {
-		if (reference.get() != null) {
-			Boolean value = reference.get().apply(cell);
-			if (value != null) {
-				ReflectionUtils.setField(field, pojo, value);
-				return;
+		Function<Cell, Boolean> func = atomicReference.get();
+		if (func != null) {
+			Boolean value = null;
+			try {
+				value = func.apply(cell);
+				if (value != null) {
+					ReflectionUtils.setField(field, pojo, value);
+					return;
+				}
+			} catch (Exception e) {
+				log.error("这是同一列出现了不同的数据格式吗?, Row[{}], Column[{}]" + e.getMessage(), cell.getRowIndex(), cell.getColumnIndex());
+				atomicReference.compareAndSet(func, null);
 			}
 		}
 		
 		if (cell.getCellTypeEnum() == CellType.BOOLEAN) {
 			Function<Cell, Boolean> convertor = c -> c.getBooleanCellValue();
+			atomicReference.compareAndSet(null, convertor);
 			Boolean value = convertor.apply(cell);
 			if (value != null) {
 				ReflectionUtils.setField(field, pojo, value);
@@ -75,7 +86,7 @@ public class BooleanCellCommand extends BaseCellCommand {
 			if (booleanValue != null) {
 				ReflectionUtils.setField(field, pojo, booleanValue);
 			}
-			reference.compareAndSet(null, convertor);
+			atomicReference.compareAndSet(null, convertor);
 			return;
 		}
 		
@@ -94,7 +105,7 @@ public class BooleanCellCommand extends BaseCellCommand {
 			if (booleanValue != null) {
 				ReflectionUtils.setField(field, pojo, booleanValue);
 			}
-			reference.compareAndSet(null, convertor);
+			atomicReference.compareAndSet(null, convertor);
 			return;
 		}
 	}

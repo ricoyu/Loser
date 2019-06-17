@@ -17,6 +17,8 @@ import org.apache.poi.ss.usermodel.DateUtil;
 import com.loserico.commons.utils.DateUtils;
 import com.loserico.workbook.utils.ReflectionUtils;
 
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * 负责将Cell里的值设置到LocalDate类型的字段上
  * <p>
@@ -28,6 +30,7 @@ import com.loserico.workbook.utils.ReflectionUtils;
  * @version 1.0
  * @on
  */
+@Slf4j
 public class LocalDateCellCommand extends BaseCellCommand {
 
 	// yyyyMMdd
@@ -44,12 +47,19 @@ public class LocalDateCellCommand extends BaseCellCommand {
 	@Override
 	public void invoke(final Cell cell, Object pojo) {
 		// ------------- Step 1 -------------
-		if (atomicReference.get() != null) {
-			LocalDate localDate = atomicReference.get().apply(cell);
-			if (localDate != null) {
-				ReflectionUtils.setField(this.field, pojo, localDate);
+		Function<Cell, LocalDate> func = atomicReference.get();
+		if (func != null) {
+			LocalDate localDate = null;
+			try {
+				localDate = func.apply(cell);
+				if (localDate != null) {
+					ReflectionUtils.setField(this.field, pojo, localDate);
+				}
+				return;
+			} catch (Exception e) {
+				log.error("这是同一列出现了不同的数据格式吗?, Row[{}], Column[{}]" + e.getMessage(), cell.getRowIndex(), cell.getColumnIndex());
+				atomicReference.compareAndSet(func, null);
 			}
-			return;
 		}
 
 		CellType cellTypeEnum = cell.getCellTypeEnum();

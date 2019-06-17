@@ -23,12 +23,19 @@ public class BigDecimalCellCommand extends BaseCellCommand {
 
 	@Override
 	public void invoke(Cell cell, Object pojo) {
-		if (reference.get() != null) {
-			BigDecimal bigDecimal = reference.get().apply(cell);
-			if (bigDecimal != null) {
-				ReflectionUtils.setField(field, pojo, bigDecimal);
+		Function<Cell, BigDecimal> func = reference.get();
+		if (func != null) {
+			BigDecimal bigDecimal = null;
+			try {
+				bigDecimal = func.apply(cell);
+				if (bigDecimal != null) {
+					ReflectionUtils.setField(field, pojo, bigDecimal);
+				}
+				return;
+			} catch (Exception e) {
+				log.error("这是同一列出现了不同的数据格式吗?, Row[{}], Column[{}]" + e.getMessage(), cell.getRowIndex(), cell.getColumnIndex());
+				reference.compareAndSet(func, null);
 			}
-			return;
 		}
 		
 		if (cell.getCellTypeEnum() == CellType.NUMERIC || cell.getCellTypeEnum() == CellType.FORMULA) {
