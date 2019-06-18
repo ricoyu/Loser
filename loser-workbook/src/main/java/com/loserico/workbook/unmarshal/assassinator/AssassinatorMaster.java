@@ -102,15 +102,6 @@ public final class AssassinatorMaster {
 	 * @return 标题行的行号, -1表示没有找到标题行
 	 */
 	public RowIterator train(List<POJOAssassinator> assassinators, Workbook workbook) {
-		/*
-		 * 如果所有POJOAssassinator的cellIndex都不是-1
-		 * 表示每个POJOAssassinator都找到了自己对应的是Sheet的哪一列, 所以不需要再训练了
-		 */
-		/*long count = assassinators.stream().filter(a -> a.getCellIndex() == -1).count();
-		if (count == 0) {
-			return new RowIterator(null, -1);
-		}*/
-
 		Sheet sheet = ExcelUtils.getSheetByNameOrIndex(workbook, sheetName, fallbackSheetIndex);
 		if (sheet == null) {
 			throw new SheetNotExistException("No sheet for name[" + sheetName + "]");
@@ -164,6 +155,14 @@ public final class AssassinatorMaster {
 			
 			for (int index = beginIndex; index <= lastColumnIndex; index++) {
 				Cell cell = titleRow.getCell(index);
+				/*
+				 * getLastCellNum()返回的列数不一定是真正的列的数量, 有可能后面的都是空的列
+				 * 这种情况拿到的Cell对象是null, 这里如果遇到Cell是null, 认为Column到这里就
+				 * 结束了, 不再往后面找了
+				 */
+				if (cell == null) {
+					break;
+				}
 				String title = titleValue(cell);
 
 				/*
