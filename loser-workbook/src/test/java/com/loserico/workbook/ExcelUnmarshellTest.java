@@ -17,6 +17,7 @@ public class ExcelUnmarshellTest {
 		Class.forName("com.loserico.commons.utils.DateUtils");
 		File file = IOUtils.readClasspathFileAsFile("excel/1005466.xlsx");
 //		Workbook workbook = ExcelUtils.getWorkbook(IOUtils.readClasspathFileAsFile("excel/958395-one.csv"));
+		long total = 0;
 		for (int i = 0; i < 10; i++) {
 			long begin = System.currentTimeMillis();
 			List<SettlementItem> settlementItems = ExcelUnmarshaller.builder(file)
@@ -28,8 +29,9 @@ public class ExcelUnmarshellTest {
 					.unmarshall();
 			long end = System.currentTimeMillis();
 			System.out.println("Total row : " + settlementItems.size() + ", Cost " + (end - begin) + " miliseconds");
+			total += (end - begin);
 		}
-//		System.out.println(toJson(settlementItems));
+		System.out.println("Average time: " + total / 10);
 	}
 
 	@Test
