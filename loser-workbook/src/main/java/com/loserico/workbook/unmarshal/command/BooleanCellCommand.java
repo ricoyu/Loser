@@ -45,8 +45,8 @@ public class BooleanCellCommand extends BaseCellCommand {
 				value = func.apply(cell);
 				if (value != null) {
 					ReflectionUtils.setField(field, pojo, value);
-					return;
 				}
+				return;
 			} catch (Exception e) {
 				log.error("这是同一列出现了不同的数据格式吗?, Row[{}], Column[{}]" + e.getMessage(), cell.getRowIndex(), cell.getColumnIndex());
 				atomicReference.compareAndSet(func, null);

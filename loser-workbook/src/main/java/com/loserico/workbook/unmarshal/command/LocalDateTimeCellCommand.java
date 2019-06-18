@@ -1,21 +1,16 @@
 package com.loserico.workbook.unmarshal.command;
 
-import static java.time.format.DateTimeFormatter.ofPattern;
-
 import java.lang.reflect.Field;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 
-import com.loserico.commons.utils.DateUtils;
+import com.loserico.workbook.unmarshal.convertor.datetime.DateTimeConvertors;
 import com.loserico.workbook.utils.ReflectionUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -34,12 +29,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LocalDateTimeCellCommand extends BaseCellCommand {
 
-	// yyyyMMdd
-	private static final Pattern PT_IOS_DATETIME = Pattern.compile("\\d{4}-\\d{2}-\\d{2}(\\s+)\\d{2}:\\d{2}:\\d{2}");
-	public static final String FMT_ISO_DATETIME = "yyyy-MM-dd HH:mm:ss";
-
 	private AtomicReference<Function<Cell, LocalDateTime>> atomicReference = new AtomicReference<Function<Cell, LocalDateTime>>(
 			null);
+	private ZoneId zoneId = ZoneId.systemDefault();
 
 	public LocalDateTimeCellCommand(Field field) {
 		super(field);
@@ -58,7 +50,8 @@ public class LocalDateTimeCellCommand extends BaseCellCommand {
 				}
 				return;
 			} catch (Exception e) {
-				log.error("这是同一列出现了不同的数据格式吗?, Row[{}], Column[{}]" + e.getMessage(), cell.getRowIndex(), cell.getColumnIndex());
+				log.error("这是同一列出现了不同的数据格式吗?, Row[{}], Column[{}]" + e.getMessage(), cell.getRowIndex(),
+						cell.getColumnIndex());
 				atomicReference.compareAndSet(func, null);
 			}
 		}
@@ -69,13 +62,10 @@ public class LocalDateTimeCellCommand extends BaseCellCommand {
 		if (cellTypeEnum == CellType.STRING) {
 			Function<Cell, LocalDateTime> functionConvertor = (c) -> {
 				String cellValue = str(c);
-				if (cellValue == null ||"".equals(cellValue)) {
-					return null;
-				}
-				return DateUtils.toLocalDateTime(cellValue.trim());
+				return DateTimeConvertors.convert(cellValue);
 			};
 			atomicReference.compareAndSet(null, functionConvertor);
-			
+
 			LocalDateTime localDateTime = functionConvertor.apply(cell);
 			if (localDateTime != null) {
 				ReflectionUtils.setField(field, pojo, localDateTime);
@@ -89,13 +79,14 @@ public class LocalDateTimeCellCommand extends BaseCellCommand {
 			if (dateCellValue == null) {
 				return null;
 			}
-			return DateUtils.toLocalDateTime(dateCellValue);
+			return dateCellValue.toInstant()
+					.atZone(zoneId)
+					.toLocalDateTime();
 		};
 		LocalDateTime localDateTime = functionConvertor.apply(cell);
 		atomicReference.compareAndSet(null, functionConvertor);
 		if (localDateTime != null) {
 			ReflectionUtils.setField(field, pojo, localDateTime);
-			return;
 		}
 
 	}

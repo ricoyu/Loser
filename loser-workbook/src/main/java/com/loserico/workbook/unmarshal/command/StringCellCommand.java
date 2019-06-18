@@ -74,7 +74,6 @@ public class StringCellCommand extends BaseCellCommand {
 			atomicReference.compareAndSet(null, convertor);
 			if (value != null) {
 				ReflectionUtils.setField(field, pojo, value);
-				return;
 			}
 		}
 	}

@@ -33,8 +33,8 @@ public class DoubleCellCommand extends BaseCellCommand {
 				doubleValue = func.apply(cell);
 				if (doubleValue != null) {
 					ReflectionUtils.setField(field, pojo, doubleValue);
-					return;
 				}
+				return;
 			} catch (Exception e) {
 				log.error("这是同一列出现了不同的数据格式吗?, Row[{}], Column[{}]" + e.getMessage(), cell.getRowIndex(), cell.getColumnIndex());
 				reference.compareAndSet(func, null);
