@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 import org.apache.poi.ss.usermodel.Cell;
 
 public abstract class BaseCellCommand implements CellCommand {
-
+	
 	// 有些cell里面的值是双引号括起来的, 这里要去掉双引号
 	protected static Pattern PATTERN_QUOTE = Pattern.compile("\"(.+)\"");
 

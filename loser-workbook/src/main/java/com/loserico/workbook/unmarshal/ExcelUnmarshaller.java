@@ -61,6 +61,10 @@ public final class ExcelUnmarshaller {
 	private int titleRowIndex = -1;
 
 	private Class<?> pojoType;
+	
+	private List<POJOAssassinator> assassinators = null;
+	
+	private AssassinatorMaster assassinatorMaster = null;
 
 	/** 是否要执行数据校验 */
 	private boolean validate = false;
@@ -80,15 +84,7 @@ public final class ExcelUnmarshaller {
 			ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
 			this.validator = factory.getValidator();
 		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public <T> List<T> unmarshall() {
-		List<POJOAssassinator> assassinators = POJOAssassinatorBuilder.build(pojoType);
-		if (assassinators.isEmpty()) {
-			return emptyList();
-		}
-
+		
 		if (this.workbook == null) {
 			try {
 				if (this.file != null) {
@@ -100,11 +96,38 @@ public final class ExcelUnmarshaller {
 				throw new WorkbookCreationException(e);
 			}
 		}
-		AssassinatorMaster assassinatorMaster = AssassinatorMaster.builder()
+		
+		this.assassinators = POJOAssassinatorBuilder.build(pojoType);
+		this.assassinatorMaster = AssassinatorMaster.builder()
 				.sheetName(sheetName)
 				.fallbackSheetIndex(fallbackSheetIndex)
 				.titleRowIndex(titleRowIndex)
 				.build();
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> List<T> unmarshall() {
+		/*List<POJOAssassinator> assassinators = POJOAssassinatorBuilder.build(pojoType);
+		if (assassinators.isEmpty()) {
+			return emptyList();
+		}*/
+
+		/*if (this.workbook == null) {
+			try {
+				if (this.file != null) {
+					this.workbook = ExcelUtils.getWorkbook(this.file);
+				} else if (this.multipartFile != null) {
+					this.workbook = ExcelUtils.getWorkbook(this.multipartFile);
+				}
+			} catch (Exception e) {
+				throw new WorkbookCreationException(e);
+			}
+		}*/
+		/*AssassinatorMaster assassinatorMaster = AssassinatorMaster.builder()
+				.sheetName(sheetName)
+				.fallbackSheetIndex(fallbackSheetIndex)
+				.titleRowIndex(titleRowIndex)
+				.build();*/
 		RowIterator<Row> iterator = assassinatorMaster.train(assassinators, workbook);
 
 		int totalCount = iterator.getTotalCount();
