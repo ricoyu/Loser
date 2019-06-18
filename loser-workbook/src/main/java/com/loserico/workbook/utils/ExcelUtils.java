@@ -207,7 +207,11 @@ public class ExcelUtils {
 		if (sheetName == null && index < 0) {
 			throw new InvalidConfigurationException("SheetName and index should specify atleast one");
 		}
-		Sheet sheet = workbook.getSheet(sheetName);
+		
+		Sheet sheet = null;
+		if (sheetName != null && !"".equals(sheetName.trim())) {
+			sheet = workbook.getSheet(sheetName);
+		}
 		if (sheet == null) {
 			if (index < 0) {
 				logger.warn("Sheet index {} invalid, should >=0", index);

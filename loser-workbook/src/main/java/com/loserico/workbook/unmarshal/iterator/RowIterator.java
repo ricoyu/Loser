@@ -56,4 +56,7 @@ public class RowIterator<T> implements Iterator<Row> {
 		this.totalCount = totalCount;
 	}
 
+	public void reset() {
+		this.currentIndex = this.startIndex;
+	}
 }

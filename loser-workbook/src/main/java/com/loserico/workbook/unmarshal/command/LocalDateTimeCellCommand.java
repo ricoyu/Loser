@@ -29,8 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LocalDateTimeCellCommand extends BaseCellCommand {
 	
-	private DataFormatter dataFormatter = new DataFormatter();
-
 	private ZoneId zoneId = ZoneId.systemDefault();
 
 	public LocalDateTimeCellCommand(Field field) {
@@ -39,13 +37,7 @@ public class LocalDateTimeCellCommand extends BaseCellCommand {
 
 	@Override
 	public void invoke(final Cell cell, Object pojo) {
-		String value = dataFormatter.formatCellValue(cell);
-		LocalDateTime localDateTime = DateTimeConvertors.convert(value);
-		if (localDateTime != null) {
-			ReflectionUtils.setField(field, pojo, localDateTime);
-		}
-		
-		/*CellType cellTypeEnum = cell.getCellTypeEnum();
+		CellType cellTypeEnum = cell.getCellTypeEnum();
 		
 		// ------------- Step 2 Cell内容是字符串类型的情况 -------------
 		if (cellTypeEnum == CellType.STRING) {
@@ -66,7 +58,7 @@ public class LocalDateTimeCellCommand extends BaseCellCommand {
 				.toLocalDateTime();
 		if (localDateTime != null) {
 			ReflectionUtils.setField(field, pojo, localDateTime);
-		}*/
+		}
 
 	}
 

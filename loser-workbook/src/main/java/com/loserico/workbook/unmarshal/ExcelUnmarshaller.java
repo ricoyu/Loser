@@ -16,6 +16,7 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import javax.validation.ValidatorFactory;
 
+import org.apache.commons.collections.ResettableIterator;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.web.multipart.MultipartFile;
@@ -71,6 +72,9 @@ public final class ExcelUnmarshaller {
 
 	private Validator validator;
 
+	private RowIterator<Row> iterator = null;
+	
+	@SuppressWarnings("unchecked")
 	private ExcelUnmarshaller(Builder builder) {
 		this.workbook = builder.workbook;
 		this.file = builder.file;
@@ -103,6 +107,14 @@ public final class ExcelUnmarshaller {
 				.fallbackSheetIndex(fallbackSheetIndex)
 				.titleRowIndex(titleRowIndex)
 				.build();
+		
+		this.iterator = assassinatorMaster.train(assassinators, workbook);
+	}
+	
+	public void reset() {
+		if (this.iterator != null) {
+			this.iterator.reset();
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -128,7 +140,7 @@ public final class ExcelUnmarshaller {
 				.fallbackSheetIndex(fallbackSheetIndex)
 				.titleRowIndex(titleRowIndex)
 				.build();*/
-		RowIterator<Row> iterator = assassinatorMaster.train(assassinators, workbook);
+//		RowIterator<Row> iterator = assassinatorMaster.train(assassinators, workbook);
 
 		int totalCount = iterator.getTotalCount();
 		List<T> results = new ArrayList<>(totalCount); //用totalCount作为ArrayList的初始容量, 消除扩容带来的性能开销
@@ -136,7 +148,7 @@ public final class ExcelUnmarshaller {
 		if (totalCount < 10000) {
 			while (iterator.hasNext()) {
 				Row row = iterator.next();
-				T instance;
+				T instance = null;
 				try {
 					instance = (T) pojoType.newInstance();
 				} catch (InstantiationException | IllegalAccessException e) {
