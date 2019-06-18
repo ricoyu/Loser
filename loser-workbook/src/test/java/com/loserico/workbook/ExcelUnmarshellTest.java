@@ -34,7 +34,6 @@ public class ExcelUnmarshellTest {
 
 	@Test
 	public void testUnmarshall2() throws Exception {
-		Class.forName("com.loserico.commons.utils.DateUtils");
 		File file = IOUtils.readClasspathFileAsFile("excel/gys-apple.xls");
 		long begin = System.currentTimeMillis();
 		List<FaPiao> settlementItems = ExcelUnmarshaller.builder(file)
