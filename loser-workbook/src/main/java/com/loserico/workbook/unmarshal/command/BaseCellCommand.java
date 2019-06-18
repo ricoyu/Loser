@@ -50,7 +50,7 @@ public abstract class BaseCellCommand implements CellCommand {
 		if ("\"\"".equals(value)) {
 			return null;
 		}
-		
+
 		Matcher matcher = PATTERN_QUOTE.matcher(value);
 		if (matcher.matches()) {
 			value = matcher.group(1).trim();
