@@ -220,7 +220,6 @@ public List<PurchaseOrderListsVO> searchPurchaseOrder(PurchaseOrderSearchVO purc
     params.put("auditStatus", purchaseOrderSearchVO.getAuditStatus());
     params.put("skus", QueryUtils.innerMatch(purchaseOrderSearchVO.getSkus()));
     params.put("purchaseContractNo", QueryUtils.innerMatch(purchaseOrderSearchVO.getPurchaseContractNo()));
-    userService.setQueryParam(params);
     List<PurchaseOrderListsVO> purchaseOrderListsVOS = sqlOperations.namedSqlQuery("searchPurchaseOrder", params, PurchaseOrderListsVO.class, purchaseOrderSearchVO.getPage());
 	......
 }
