@@ -2,6 +2,8 @@ package com.loserico.bitop;
 
 import java.math.BigInteger;
 
+import org.junit.Test;
+
 public class DecimalBinaryConvert {
 
 	/**
@@ -37,5 +39,11 @@ public class DecimalBinaryConvert {
 		System.out.println(String.format(" 数字 %d 的二进制是 %s", a, decimal2Binary(a)));
 		// 获取二进制数 110101 的十进制数
 		System.out.println(String.format(" 数字 %s 的十进制是 %d", b, binary2Decimal(b)));
+	}
+	
+	@Test
+	public void testHexToBinary() {
+		String binary = new BigInteger("f", 16).toString(2);
+		System.out.println(binary);
 	}
 }
