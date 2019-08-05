@@ -96,11 +96,11 @@ public final class RedissonUtils {
 	 * <pre>
 	 * <b>非公平锁</b></p>
 	 * 非公平锁
-	 * 尝试获取锁，如果锁已经被其他客户端获取，本线程将一直阻塞。
-	 * 成功获取锁后，如果不手工释放锁，leaseTime 个单位时间后锁自动释放。
+	 * 尝试获取锁, 如果锁已经被其他客户端获取, 本线程将一直阻塞。
+	 * 成功获取锁后, 如果不手工释放锁, leaseTime 个单位时间后锁自动释放。
 	 * 
 	 * 锁在Redis里面是Hash结构
-	 * 同一个线程里面可以重复多次获取同一把锁，但是不同线程之间同时只有一个线程可以获取同一把锁</pre>
+	 * 同一个线程里面可以重复多次获取同一把锁, 但是不同线程之间同时只有一个线程可以获取同一把锁</pre>
 	 * @param name
 	 * @param leaseTime the maximum time to hold the lock after granting it, before
 	 *            automatically releasing it if it hasn't already been released by
@@ -120,11 +120,11 @@ public final class RedissonUtils {
 	 * <pre>
 	 * <b>公平锁</b></p>
 	 * 公平锁
-	 * 尝试获取锁，如果锁已经被其他客户端获取，本线程将一直阻塞。
-	 * 成功获取锁后，如果不手工释放锁，leaseTime 个单位时间后锁自动释放。
+	 * 尝试获取锁, 如果锁已经被其他客户端获取, 本线程将一直阻塞。
+	 * 成功获取锁后, 如果不手工释放锁, leaseTime 个单位时间后锁自动释放。
 	 * 
 	 * 锁在Redis里面是Hash结构
-	 * 同一个线程里面可以重复多次获取同一把锁，但是不同线程之间同时只有一个线程可以获取同一把锁</pre>
+	 * 同一个线程里面可以重复多次获取同一把锁, 但是不同线程之间同时只有一个线程可以获取同一把锁</pre>
 	 * @param name
 	 * @param leaseTime the maximum time to hold the lock after granting it, before
 	 *            automatically releasing it if it hasn't already been released by
@@ -143,12 +143,12 @@ public final class RedissonUtils {
 	/**
 	 * <pre>
 	 * <b>非公平锁</b></p>
-	 * 尝试获取锁，如果锁已经被其他客户端获取，本线程将阻塞。
+	 * 尝试获取锁, 如果锁已经被其他客户端获取, 本线程将阻塞。
 	 * 最多等待 waitTime 个单位时间
-	 * 成功获取锁后，如果不手工释放锁，leaseTime 个单位时间后锁自动释放。
+	 * 成功获取锁后, 如果不手工释放锁, leaseTime 个单位时间后锁自动释放。
 	 * 
 	 * 锁在Redis里面是Hash结构
-	 * 同一个线程里面可以重复多次获取同一把锁，但是不同线程之间同时只有一个线程可以获取同一把锁</pre>
+	 * 同一个线程里面可以重复多次获取同一把锁, 但是不同线程之间同时只有一个线程可以获取同一把锁</pre>
 	 * @param name
 	 * @param leaseTime the maximum time to hold the lock after granting it, before
 	 *            automatically releasing it if it hasn't already been released by
@@ -173,12 +173,12 @@ public final class RedissonUtils {
 	/**
 	 * <pre>
 	 * <b>公平锁</b></p>
-	 * 尝试获取锁，如果锁已经被其他客户端获取，本线程将阻塞。
+	 * 尝试获取锁, 如果锁已经被其他客户端获取, 本线程将阻塞。
 	 * 最多等待 waitTime 个单位时间
-	 * 成功获取锁后，如果不手工释放锁，leaseTime 个单位时间后锁自动释放。
+	 * 成功获取锁后, 如果不手工释放锁, leaseTime 个单位时间后锁自动释放。
 	 * 
 	 * 锁在Redis里面是Hash结构
-	 * 同一个线程里面可以重复多次获取同一把锁，但是不同线程之间同时只有一个线程可以获取同一把锁</pre>
+	 * 同一个线程里面可以重复多次获取同一把锁, 但是不同线程之间同时只有一个线程可以获取同一把锁</pre>
 	 * @param name
 	 * @param leaseTime the maximum time to hold the lock after granting it, before
 	 *            automatically releasing it if it hasn't already been released by
@@ -246,7 +246,7 @@ public final class RedissonUtils {
 	}
 
 	/**
-	 * 根据指定名称创建一个分布式的ConcurrentMap<K, V> 注意value对应的对象属性改变了，需要再put(key, value)回去
+	 * 根据指定名称创建一个分布式的ConcurrentMap<K, V> 注意value对应的对象属性改变了, 需要再put(key, value)回去
 	 * 
 	 * @param name
 	 * @return ConcurrentMap
@@ -278,7 +278,7 @@ public final class RedissonUtils {
 	}
 
 	/**
-	 * 分布式的阻塞队列，有容量限制
+	 * 分布式的阻塞队列, 有容量限制
 	 * 
 	 * @param name
 	 * @param capacity
@@ -344,7 +344,7 @@ public final class RedissonUtils {
 	/**
 	 * 获取一个分布式信号量,这个信号量有 tickets 张票。
 	 * 
-	 * 用法是不同客户端传相同的name以获取同一个Semaphore。只有第一个客户端可以设置船票数，后续设置的船票数都失败，但只要还有船票，后续客户端还是可以acquire成功
+	 * 用法是不同客户端传相同的name以获取同一个Semaphore。只有第一个客户端可以设置船票数, 后续设置的船票数都失败, 但只要还有船票, 后续客户端还是可以acquire成功
 	 * @param name
 	 * @return Semaphore
 	 * @on
