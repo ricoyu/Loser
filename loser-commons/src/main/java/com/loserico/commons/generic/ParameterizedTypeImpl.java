@@ -4,6 +4,7 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 
 public class ParameterizedTypeImpl implements ParameterizedType {
+	
 	@SuppressWarnings("rawtypes")
 	private final Class raw;
 	private final Type[] args;

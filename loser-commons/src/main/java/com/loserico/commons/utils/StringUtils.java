@@ -17,6 +17,7 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -210,6 +211,23 @@ public abstract class StringUtils {
 
 	public static String uniqueKey(int length) {
 		return RandomStringUtils.randomAlphanumeric(length);
+	}
+	
+	/**
+	 * 通过Java API生成指定长度的随机字符串
+	 * @param targetStringLength
+	 * @return
+	 */
+	public static String randomStr(int targetStringLength) {
+		int leftLimit = 97; // letter 'a'
+		int rightLimit = 122; // letter 'z'
+		Random random = new Random();
+		StringBuilder buffer = new StringBuilder(targetStringLength);
+		for (int i = 0; i < targetStringLength; i++) {
+			int randomLimitedInt = leftLimit + (int) (random.nextFloat() * (rightLimit - leftLimit + 1));
+			buffer.append((char) randomLimitedInt);
+		}
+		return buffer.toString();
 	}
 
 	/**
