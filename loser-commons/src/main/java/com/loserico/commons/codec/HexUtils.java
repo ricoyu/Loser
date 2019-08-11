@@ -28,7 +28,6 @@ public final class HexUtils {
 		hex = hex.replaceAll("\\s", "");
 		
 		StringBuilder output = new StringBuilder();
-
 		for (int i = 0; i < hex.length(); i += 2) {
 			// grab the hex in pairs
 			String str = hex.substring(i, i + 2);
