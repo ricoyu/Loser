@@ -30,8 +30,11 @@ public class StringConstantPool {
 		String v = new String("hello,world");
 
 		System.out.println(m == n); // true
+		System.out.println(m == u.intern()); // true
 		System.out.println(m == u); // false
+		System.out.println(m == v.intern()); // true
 		System.out.println(m == v); // false
+		System.out.println(u.intern() == v.intern()); // true
 		System.out.println(u == v); // false
 	}
 }
