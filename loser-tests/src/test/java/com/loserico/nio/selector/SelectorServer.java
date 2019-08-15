@@ -19,6 +19,7 @@ public class SelectorServer {
 		if (args.length > 0) {
 			port = Integer.parseInt(args[0]);
 		}
+		
 		System.out.println("Server starting ... listening on port " + port);
 		ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
 		ServerSocket serverSocket = serverSocketChannel.socket();

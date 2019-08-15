@@ -17,7 +17,7 @@ public class SelectorClient {
 		}
 		try {
 			SocketChannel socketChannel = SocketChannel.open();
-			InetSocketAddress addr = new InetSocketAddress("192.168.1.7", port);
+			InetSocketAddress addr = new InetSocketAddress("localhost", port);
 			socketChannel.connect(addr);
 			long time = 0;
 			while (socketChannel.read(buffer) != -1) {

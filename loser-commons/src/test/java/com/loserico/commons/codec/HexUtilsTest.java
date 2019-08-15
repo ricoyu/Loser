@@ -26,4 +26,10 @@ public class HexUtilsTest {
 		System.out.println(RedixUtils.intToBinary(4));
 		System.out.println(RedixUtils.intToBinary(i));
 	}
+	
+	@Test
+	public void testName() {
+		String s = HexUtils.hexToString("282956");
+		System.out.println(s);
+	}
 }
