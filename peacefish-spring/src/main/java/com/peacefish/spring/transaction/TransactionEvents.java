@@ -15,7 +15,7 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 /**
  * Spring事务工具类
- * 在Spring的Service层另起线程，但是该线程需要在事务内运行时可以使用这个帮助类
+ * 在Spring的Service层另起线程, 但是该线程需要在事务内运行时可以使用这个帮助类
  * 
  * @author Rico Yu ricoyu520@gmail.com
  * @since 2017-04-19 17:38
