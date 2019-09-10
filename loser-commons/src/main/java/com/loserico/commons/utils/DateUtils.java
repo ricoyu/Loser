@@ -506,6 +506,10 @@ public final class DateUtils {
 			simpleDateFormat = SimpleDateFormatHolder.formatFor("yyyy-MM");
 		}
 
+		if (simpleDateFormat == null) {
+			log.info("No suitable Dateformat found!");
+			return null;
+		}
 		try {
 			return simpleDateFormat.parse(source);
 		} catch (ParseException e) {
@@ -625,6 +629,11 @@ public final class DateUtils {
 			simpleDateFormat = SimpleDateFormatHolder.formatFor("yyyy-MM", timezone);
 		}
 
+		if (simpleDateFormat == null) {
+			log.info("No suitable Dateformat found!");
+			return null;
+		}
+		
 		try {
 			return simpleDateFormat.parse(source);
 		} catch (ParseException e) {
