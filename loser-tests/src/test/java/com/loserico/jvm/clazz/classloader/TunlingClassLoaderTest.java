@@ -1,8 +1,6 @@
 package com.loserico.jvm.clazz.classloader;
 
 import java.io.FileInputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 
 /**
  * 图灵学院自定义ClassLoader测试
