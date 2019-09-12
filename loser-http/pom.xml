@@ -70,7 +70,7 @@
 		<dependency>
 			<groupId>com.loserico</groupId>
 			<artifactId>loser-commons</artifactId>
-			<version>4.0</version>
+			<version>4.6.1</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
