@@ -3,8 +3,8 @@ package com.loserico.concurrent;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -12,8 +12,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
-
-import org.omg.CORBA.TIMEOUT;
 
 import com.alibaba.ttl.threadpool.TtlExecutors;
 import com.loserico.concurrent.exception.ConcurrentOperationException;
@@ -24,9 +22,9 @@ import lombok.extern.slf4j.Slf4j;
  * 基于JDK18 的并发工具类
  * 
  * 合理的最佳线程数估算公式:
- *  最佳线程数目 = ((线程等待时间 + 线程CPU时间) / 线程CPU时间 ) * CPU数目
+ * 最佳线程数目 = ((线程等待时间 + 线程CPU时间) / 线程CPU时间 ) * CPU数目
  * 即
- *  最佳线程数目 = (线程等待时间 / 线程CPU时间 + 1) * CPU数目
+ * 最佳线程数目 = (线程等待时间 / 线程CPU时间 + 1) * CPU数目
  * <p>
  * Copyright: Copyright (c) 2019-05-27 13:27
  * <p>
