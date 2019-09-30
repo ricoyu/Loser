@@ -3,4 +3,8 @@
 target
 .classpath
 .idea
+<<<<<<< HEAD
 *.iml
+=======
+.iml
+>>>>>>> branch 'master' of git@github.com:ricoyu/Loser.git
