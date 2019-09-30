@@ -34,15 +34,16 @@ public class BloomFilterTest {
 		 * 1秒 = 1 000 000 000 纳秒
 		 * 程序运行时间： 140246纳秒
 		 * 140246纳秒 =0.140246 毫秒
-		 * 也就是说，判断一个数是否属于一个百万级别的集合，只要0.140246ms就可以完成，性能极佳。
-		 * @on
+		 * 也就是说，判断一个
+		 * 数是否属于一个百万级别的集合，只要0.140246ms就可以完成，性能极佳。
+		 *
 		 */
 		System.out.println("程序运行时间： " + (endTime - startTime) + "纳秒");
 	}
 
 	/**
 	 * 误判率测试
-	 * 
+	 *
 	 * 我们故意取10000个不在过滤器里的值，却还有330个被认为在过滤器里，这说明了误判率为0.03.即，在不做任何设置的情况下，默认的误判率为0.03
 	 * 看源码可以知道这是设置的默认值
 	 *  public static <T> BloomFilter<T> create(Funnel<? super T> funnel, long expectedInsertions) {

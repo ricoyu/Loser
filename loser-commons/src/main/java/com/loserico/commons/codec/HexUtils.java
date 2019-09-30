@@ -56,4 +56,41 @@ public final class HexUtils {
 
 		return hex.toString();
 	}
+	
+	/**
+	 * 十六进制转成Integer
+	 * @param hex
+	 * @return Integer
+	 */
+	public static Integer hexToInteger(String hex) {
+		if (hex == null || "".equals(hex.trim())) {
+			return null;
+		}
+		
+		if (hex.toLowerCase().indexOf("0x") != -1) {
+			hex = hex.substring(2);
+		}
+		
+		return Integer.parseInt(hex, 16);
+	}
+	
+	public static Long hexToLong(String hex) {
+		if (hex == null || "".equals(hex.trim())) {
+			return null;
+		}
+		
+		if (hex.toLowerCase().indexOf("0x") != -1) {
+			hex = hex.substring(2);
+		}
+		
+		return Long.parseLong(hex, 16);
+	}
+	
+	public static String integerToHex(Integer i) {
+		if (i == null) {
+			return null;
+		}
+		
+		return Integer.toHexString(i);
+	}
 }

@@ -14,6 +14,7 @@ public class HexUitlsTest {
 		String str = HexUtils.hexToString(hex);
 		System.out.println(str);
 		assertEquals("com/loserico/jvm/TestClass", str);
+		System.out.println(Math.round(Math.random() * 4));
 	}
 	
 	@Test
@@ -23,4 +24,21 @@ public class HexUitlsTest {
 		System.out.println(str);
 		assertEquals("java/lang/Object", str);
 	}
+	
+	@Test
+	public void testHexToInt() {
+		Long userSpaceUpper = HexUtils.hexToLong("0Xc0000000");
+		System.out.println("0xc0000000 的十进制形式是: " + userSpaceUpper);
+		Long kernelSpaceUpper = HexUtils.hexToLong("0XFFFFFFFF");
+		System.out.println("0XFFFFFFFF 的十进制形式是: " + kernelSpaceUpper);
+	}
+	
+	@Test
+	public void testIntegerMaxValue() {
+		String hex = HexUtils.integerToHex(Integer.MAX_VALUE);
+		System.out.println(Integer.MAX_VALUE);
+		System.out.println(hex);
+	}
 }
+
+

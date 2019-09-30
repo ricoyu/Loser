@@ -157,7 +157,8 @@ public class JpaDao implements JPQLOperations, SQLOperations, CriteriaOperations
 		properties.setProperty(RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
 				"org.apache.velocity.runtime.log.Log4JLogChute");
 		properties.setProperty("runtime.log.logsystem.log4j.logger", "velocity");
-		Velocity.init(properties); //初始化运行时引擎
+        //初始化运行时引擎
+        Velocity.init(properties);
 	}
 
 	/**
