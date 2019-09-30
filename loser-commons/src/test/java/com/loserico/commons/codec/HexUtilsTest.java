@@ -9,15 +9,15 @@ public class HexUtilsTest {
 	@Test
 	public void testHexToDecimal() {
 		System.out.println(RedixUtils.hexToDecimal("0xffffcd7d"));
-//		System.out.println(RedixUtils.hexToDecimal("0xf2"));
-//		System.out.println(RedixUtils.hexToDecimal("0xf21"));
-//		System.out.println(RedixUtils.hexToDecimal("0xf"));
+		System.out.println(RedixUtils.hexToDecimal("0xf2"));
+		System.out.println(RedixUtils.hexToDecimal("0xf21"));
+		System.out.println(RedixUtils.hexToDecimal("0xf"));
 	}
 	
 	@Test
 	public void testHexToBin() {
-		System.out.println(RedixUtils.hexToBinary("ffffcd7d"));
-		System.out.println(BigInteger.valueOf(0xffffcd7d).toString(2));
+		// System.out.println(RedixUtils.hexToBinary("ffffcd7d"));
+		// System.out.println(BigInteger.valueOf(0xffffcd7d).toString(2));
 	}
 	
 	@Test

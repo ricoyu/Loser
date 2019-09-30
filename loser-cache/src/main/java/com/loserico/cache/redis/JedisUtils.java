@@ -258,7 +258,8 @@ public final class JedisUtils {
 	}
 
 	/**
-	 * key/value都不是String类型的情况, 如果key/value实现了Serializable接口, 那么用Java的序列化机制, 否则使用Jackson序列化成byte[]
+	 * key/value都不是String类型的情况, 如果key/value实现了Serializable接口, 那么用Java的序列化机制,
+	 * 否则使用Jackson序列化成byte[]
 	 * 
 	 * @param key
 	 * @param value
@@ -299,7 +300,8 @@ public final class JedisUtils {
 	}
 
 	/**
-	 * value不是String类型的情况, 如果value实现了Serializable接口, 那么用Java的序列化机制, 否则使用Jackson序列化成byte[], 同时带过期时间
+	 * value不是String类型的情况, 如果value实现了Serializable接口, 那么用Java的序列化机制,
+	 * 否则使用Jackson序列化成byte[], 同时带过期时间
 	 * 
 	 * @param key
 	 * @param value
@@ -311,7 +313,8 @@ public final class JedisUtils {
 	}
 
 	/**
-	 * key不是String类型的情况, 如果key实现了Serializable接口, 那么用Java的序列化机制, 否则使用Jackson序列化成byte[], 同时设置过期时间
+	 * key不是String类型的情况, 如果key实现了Serializable接口, 那么用Java的序列化机制,
+	 * 否则使用Jackson序列化成byte[], 同时设置过期时间
 	 * 
 	 * @param key
 	 * @param value
@@ -323,7 +326,8 @@ public final class JedisUtils {
 	}
 
 	/**
-	 * key/value都不是String类型的情况, 如果key/value实现了Serializable接口, 那么用Java的序列化机制, 否则使用Jackson序列化成byte[]
+	 * key/value都不是String类型的情况, 如果key/value实现了Serializable接口, 那么用Java的序列化机制,
+	 * 否则使用Jackson序列化成byte[]
 	 * 
 	 * @param key
 	 * @param value
@@ -496,7 +500,8 @@ public final class JedisUtils {
 	}
 
 	/**
-	 * key不是String类型的情况, 如果key实现了Serializable接口, 那么用Java的序列化机制, 否则使用Jackson序列化成byte[]
+	 * key不是String类型的情况, 如果key实现了Serializable接口, 那么用Java的序列化机制,
+	 * 否则使用Jackson序列化成byte[]
 	 * 
 	 * @param key
 	 * @return String
@@ -2372,7 +2377,7 @@ public final class JedisUtils {
 				}
 			}
 		}
-		
+
 		/**
 		 * 返回0表示这个username没有登录
 		 * 返回-1表示usernameTtl检查的时候发现这个用户登录已经过期, 同时会清理其登录信息
@@ -3081,13 +3086,17 @@ public final class JedisUtils {
 	 * 在事务提交或者回滚后释放锁,即保证锁的释放
 	 * 
 	 * 使用这个方法需要配置Spring Bean
-	 * <pre>{@code
-	 * @Bean
+	 * 
+	 * <pre>
+	 * {@code
+	 * &#64;Bean
 	 * public TransactionEvents transactionEvents() {
 	 *     return new TransactionEvents();
 	 * }
 	 * </pre>
+	 * 
 	 * @param key
+	 * 
 	 * @param token
 	 */
 	public static void unlockAnyway(String key, String token) {

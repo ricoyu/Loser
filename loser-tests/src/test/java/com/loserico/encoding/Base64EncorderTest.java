@@ -19,6 +19,11 @@ public class Base64EncorderTest {
 		System.out.println(new String(decorded, "UTF-8"));
 	}
 
+	@Test
+	public void testName() {
+		System.out.println("asdasdasd");
+	}
+
 	/**
 	 * URL 
 	 * 
