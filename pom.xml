@@ -109,7 +109,7 @@
 		<hadoop.version>2.5.1</hadoop.version>
 		<!-- <hadoop.version>2.6.5</hadoop.version> -->
 		<!-- <hadoop.version>3.1.2</hadoop.version> -->
-		<zookeeper.version>3.4.13</zookeeper.version>
+		<zookeeper.version>3.4.14</zookeeper.version>
 		<curator.version>4.0.0</curator.version>
 		<dubbo.version>2.8.4</dubbo.version>
 		<resteasy.version>3.0.19.Final</resteasy.version>
