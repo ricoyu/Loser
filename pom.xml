@@ -117,7 +117,7 @@
 		<zkclient.version>0.11</zkclient.version>
 		<netty-version>4.1.6.Final</netty-version>
 		<!-- <netty-version>5.0.0.Alpha2</netty-version> -->
-		<jetty.version>9.3.12.v20160915</jetty.version>
+		<jetty.version>9.4.41.v20210516</jetty.version>
 		<mortbay.jetty.version>6.1.26</mortbay.jetty.version>
 		<thrift.version>0.9.3</thrift.version>
 		<hsqldb.version>2.3.4</hsqldb.version>
