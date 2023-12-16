@@ -1004,7 +1004,7 @@
 		<repository>
 			<id>LoserRepository</id>
 			<name>Loser Repository</name>
-			<url>http://peacefish.com:9991/repository/LoserRepository/</url>
+			<url>https://peacefish.com:9991/repository/LoserRepository/</url>
 		</repository>
 	</distributionManagement>
 
